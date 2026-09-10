@@ -1,0 +1,107 @@
+{
+  "forwardTradingDays": 20,
+  "universe": "S&P500",
+  "generatedFrom": {
+    "start": "2017-07-21",
+    "end": "2026-08-07"
+  },
+  "tickerCount": 503,
+  "buckets": {
+    "high|veryStrong": {
+      "sampleSize": 70408,
+      "winRatePct": 56.4,
+      "meanReturnPct": 2.33,
+      "medianReturnPct": 1.51,
+      "p10ReturnPct": -11.25,
+      "p90ReturnPct": 16.12
+    },
+    "high|strong": {
+      "sampleSize": 110196,
+      "winRatePct": 55,
+      "meanReturnPct": 0.79,
+      "medianReturnPct": 0.88,
+      "p10ReturnPct": -8.72,
+      "p90ReturnPct": 10.03
+    },
+    "high|moderate": {
+      "sampleSize": 194747,
+      "winRatePct": 56.7,
+      "meanReturnPct": 0.85,
+      "medianReturnPct": 1.05,
+      "p10ReturnPct": -7.65,
+      "p90ReturnPct": 9.17
+    },
+    "high|weak": {
+      "sampleSize": 90792,
+      "winRatePct": 55.6,
+      "meanReturnPct": 0.88,
+      "medianReturnPct": 0.93,
+      "p10ReturnPct": -7.85,
+      "p90ReturnPct": 9.66
+    },
+    "mid|weak": {
+      "sampleSize": 138002,
+      "winRatePct": 54.8,
+      "meanReturnPct": 0.81,
+      "medianReturnPct": 0.83,
+      "p10ReturnPct": -8.36,
+      "p90ReturnPct": 10.11
+    },
+    "low|weak": {
+      "sampleSize": 351414,
+      "winRatePct": 56.3,
+      "meanReturnPct": 1.52,
+      "medianReturnPct": 1.28,
+      "p10ReturnPct": -9.88,
+      "p90ReturnPct": 13
+    },
+    "low|moderate": {
+      "sampleSize": 43703,
+      "winRatePct": 60.2,
+      "meanReturnPct": 2.46,
+      "medianReturnPct": 2.32,
+      "p10ReturnPct": -9.55,
+      "p90ReturnPct": 14.39
+    },
+    "mid|moderate": {
+      "sampleSize": 80651,
+      "winRatePct": 56.2,
+      "meanReturnPct": 0.86,
+      "medianReturnPct": 1.08,
+      "p10ReturnPct": -8.72,
+      "p90ReturnPct": 10.25
+    },
+    "mid|strong": {
+      "sampleSize": 17312,
+      "winRatePct": 56.6,
+      "meanReturnPct": 1.73,
+      "medianReturnPct": 1.31,
+      "p10ReturnPct": -9.65,
+      "p90ReturnPct": 13.26
+    },
+    "mid|veryStrong": {
+      "sampleSize": 4851,
+      "winRatePct": 62,
+      "meanReturnPct": 4.95,
+      "medianReturnPct": 3.42,
+      "p10ReturnPct": -12.1,
+      "p90ReturnPct": 23.27
+    },
+    "low|strong": {
+      "sampleSize": 3826,
+      "winRatePct": 62.6,
+      "meanReturnPct": 3.75,
+      "medianReturnPct": 3.11,
+      "p10ReturnPct": -10.24,
+      "p90ReturnPct": 18
+    },
+    "low|veryStrong": {
+      "sampleSize": 670,
+      "winRatePct": 58.1,
+      "meanReturnPct": 6.59,
+      "medianReturnPct": 3.95,
+      "p10ReturnPct": -13.93,
+      "p90ReturnPct": 30.87
+    }
+  }
+}
