@@ -42,13 +42,14 @@ const PERSONA_COLOR: Record<PersonaId, string> = {
   trend: "var(--accent)",
   committee: "var(--accent-strong)",
   value: "#6f5fa3",
+  growth: "#3f8f8f",
   risk: "var(--price-down)",
   income: "#a9843b",
   event: "#8f6ea3",
   manager: "#1c3a5e",
 };
 
-const DISPLAY_ORDER: PersonaId[] = ["manager", "trend", "committee", "value", "risk", "income", "event"];
+const DISPLAY_ORDER: PersonaId[] = ["manager", "trend", "committee", "value", "growth", "risk", "income", "event"];
 
 function fmtYen(n: number): string {
   return "¥" + Math.round(n).toLocaleString("ja-JP");

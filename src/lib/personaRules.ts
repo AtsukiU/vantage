@@ -6,7 +6,7 @@ import { BASE_PERSONA_DEFS } from "./personaDefs";
 // personaStore.ts(サーバー専用、仮想口座の永続化)と、実ポートフォリオへの助言を
 // クライアント側で計算するportfolioAdvice.tsの両方から使う共通ロジック。
 
-export type BasePersonaId = "trend" | "committee" | "value" | "risk" | "income" | "event";
+export type BasePersonaId = "trend" | "committee" | "value" | "growth" | "risk" | "income" | "event";
 
 // ISO日付文字列(YYYY-MM-DD)から、今日を起点とした日数を返す(未来ならプラス)。
 function daysUntil(dateStr: string): number {
@@ -26,7 +26,8 @@ export function convictionMultiplier(e: DailyScreenEntry): number {
   }
 }
 
-// trend/committee/valueそれぞれの「この銘柄を買いたいか」の判定条件。
+// 各運用者の「この銘柄を買いたいか」の判定条件。committee/value/growthは実在の投資家が
+// 使っていた基準(PER/PBR/ROE/売上・利益成長率など)を、取得できる生データの範囲で再現している。
 export function passesFilter(id: BasePersonaId, e: DailyScreenEntry): boolean {
   if (id === "trend") {
     // 本来のミネルヴィニ/CANSLIM流に、トレンドスコアに加えて相対力(RS)上位30%であることも要求する
@@ -40,8 +41,33 @@ export function passesFilter(id: BasePersonaId, e: DailyScreenEntry): boolean {
     );
   }
   if (id === "committee") {
-    const { grade } = computeOverallScore(e);
-    return grade === "S" || grade === "A";
+    // グリーンブラット「マジックフォーミュラ」: 質の高さ(ROE)と割安さ(低PER)を両方要求する。
+    return e.roe != null && e.roe >= 15 && e.per != null && e.per > 0 && e.per <= 20;
+  }
+  if (id === "value") {
+    // グレアム「ディープバリュー」: PBR・PERの低さ(割安)+流動比率・負債比率(財務の固さ)で
+    // 「安全域」を確認する。current/debtはデータが取れない銘柄(特にJP中小型株)が多いため、
+    // 無ければ条件対象外として通す(必須にすると候補がほぼゼロになってしまうため)。
+    return (
+      e.pbr != null &&
+      e.pbr > 0 &&
+      e.pbr <= 1.5 &&
+      e.per != null &&
+      e.per > 0 &&
+      e.per <= 15 &&
+      (e.currentRatio == null || e.currentRatio >= 1.5) &&
+      (e.debtToEquity == null || e.debtToEquity <= 150)
+    );
+  }
+  if (id === "growth") {
+    // リンチ「PEGレシオ」: 利益成長率が高く、かつその成長率の割にPERが割安(PEG≦1.5)な銘柄。
+    return (
+      e.earningsGrowth != null &&
+      e.earningsGrowth >= 15 &&
+      e.per != null &&
+      e.per > 0 &&
+      e.per / e.earningsGrowth <= 1.5
+    );
   }
   if (id === "risk") {
     // 下落回避を優先する保守型: 財務健全性が非常に高く、マクロの逆風がなく、委員会の広い賛成が
@@ -60,25 +86,16 @@ export function passesFilter(id: BasePersonaId, e: DailyScreenEntry): boolean {
       (e.rsPercentile == null || e.rsPercentile >= 40)
     );
   }
-  if (id === "value") {
-    return (
-      e.fundamentalRoleScore != null &&
-      e.fundamentalRoleTotal > 0 &&
-      e.fundamentalRoleScore / e.fundamentalRoleTotal >= 0.7 &&
-      e.qualityScore != null &&
-      e.qualityTotal > 0 &&
-      e.qualityScore / e.qualityTotal >= 0.7
-    );
-  }
   if (id === "income") {
-    // 値上がり益より配当の安定収入を狙う: 配当利回りが一定以上、かつ財務がある程度健全
-    // (高利回りだが財務が傷んでいる「配当トラップ」銘柄を避けるため)。
+    // シーゲル「配当長期」: 値上がり益より配当の安定収入を狙う。配当利回りが一定以上、かつ
+    // 利益が減っていない(=減配リスクが低い、高利回りだが業績が傷んでいる「配当トラップ」を避ける)。
     return (
       e.dividendYield != null &&
       e.dividendYield >= 2.5 &&
       e.qualityScore != null &&
       e.qualityTotal > 0 &&
-      e.qualityScore / e.qualityTotal >= 0.6
+      e.qualityScore / e.qualityTotal >= 0.6 &&
+      (e.earningsGrowth == null || e.earningsGrowth >= -5)
     );
   }
   // event: 総合スコアが高い銘柄の中から、決算発表が7日以内に迫っているものだけを除外する
@@ -98,7 +115,8 @@ export function candidatesFor(id: BasePersonaId, pool: DailyScreenEntry[], held:
     return notHeld.sort((a, b) => b.minerviniScore! / b.minerviniTotal - a.minerviniScore! / a.minerviniTotal);
   }
   if (id === "committee") {
-    return notHeld.sort((a, b) => computeOverallScore(b).score - computeOverallScore(a).score);
+    // ROE÷PER(質÷価格)が高いほど「質の割に安い」= マジックフォーミュラ的に魅力が高いとみなす。
+    return notHeld.sort((a, b) => b.roe! / b.per! - a.roe! / a.per!);
   }
   if (id === "risk") {
     return notHeld.sort((a, b) => {
@@ -108,11 +126,12 @@ export function candidatesFor(id: BasePersonaId, pool: DailyScreenEntry[], held:
     });
   }
   if (id === "value") {
-    return notHeld.sort((a, b) => {
-      const ra = a.fundamentalRoleScore! / a.fundamentalRoleTotal + a.qualityScore! / a.qualityTotal;
-      const rb = b.fundamentalRoleScore! / b.fundamentalRoleTotal + b.qualityScore! / b.qualityTotal;
-      return rb - ra;
-    });
+    // PER×PBR(グレアム自身の合成指標、彼の目安は22.5以下)が低いほど割安とみなす。
+    return notHeld.sort((a, b) => a.per! * a.pbr! - b.per! * b.pbr!);
+  }
+  if (id === "growth") {
+    // PEGレシオ(PER÷利益成長率)が低いほど「成長の割に割安」とみなす。
+    return notHeld.sort((a, b) => a.per! / a.earningsGrowth! - b.per! / b.earningsGrowth!);
   }
   if (id === "income") {
     return notHeld.sort((a, b) => b.dividendYield! - a.dividendYield!);
@@ -123,10 +142,11 @@ export function candidatesFor(id: BasePersonaId, pool: DailyScreenEntry[], held:
 
 export const BASE_LABEL_SHORT: Record<BasePersonaId, string> = {
   trend: "トレンド",
-  committee: "総合スコア",
-  value: "バリュー",
+  committee: "グリーンブラット",
+  value: "グレアム",
+  growth: "リンチ",
   risk: "リスク管理",
-  income: "インカム",
+  income: "シーゲル",
   event: "イベント警戒",
 };
 
@@ -191,8 +211,10 @@ export function explainFilter(id: BasePersonaId, e: DailyScreenEntry): FilterExp
     ];
   }
   if (id === "committee") {
-    const { grade, score } = computeOverallScore(e);
-    return [{ label: "総合評価グレード", value: `${grade}(${score}点、基準A以上)`, pass: grade === "S" || grade === "A" }];
+    return [
+      { label: "ROE(質)", value: e.roe != null ? `${e.roe.toFixed(1)}%(基準15%以上)` : "データなし", pass: e.roe != null && e.roe >= 15 },
+      { label: "PER(割安さ)", value: e.per != null ? `${e.per.toFixed(1)}倍(基準20倍以下)` : "データなし", pass: e.per != null && e.per > 0 && e.per <= 20 },
+    ];
   }
   if (id === "risk") {
     const qRatio = e.qualityScore != null && e.qualityTotal > 0 ? e.qualityScore / e.qualityTotal : null;
@@ -206,11 +228,18 @@ export function explainFilter(id: BasePersonaId, e: DailyScreenEntry): FilterExp
     ];
   }
   if (id === "value") {
-    const fRatio = e.fundamentalRoleScore != null && e.fundamentalRoleTotal > 0 ? e.fundamentalRoleScore / e.fundamentalRoleTotal : null;
-    const qRatio = e.qualityScore != null && e.qualityTotal > 0 ? e.qualityScore / e.qualityTotal : null;
     return [
-      { label: "ファンダメンタル役", value: `${ratioLabel(e.fundamentalRoleScore, e.fundamentalRoleTotal)}(基準70%以上)`, pass: fRatio != null && fRatio >= 0.7 },
-      { label: "財務健全性", value: `${ratioLabel(e.qualityScore, e.qualityTotal)}(基準70%以上)`, pass: qRatio != null && qRatio >= 0.7 },
+      { label: "PBR", value: e.pbr != null ? `${e.pbr.toFixed(2)}倍(基準1.5倍以下)` : "データなし", pass: e.pbr != null && e.pbr > 0 && e.pbr <= 1.5 },
+      { label: "PER", value: e.per != null ? `${e.per.toFixed(1)}倍(基準15倍以下)` : "データなし", pass: e.per != null && e.per > 0 && e.per <= 15 },
+      { label: "流動比率", value: e.currentRatio != null ? `${e.currentRatio.toFixed(2)}(基準1.5以上)` : "データなし(条件対象外)", pass: e.currentRatio == null || e.currentRatio >= 1.5 },
+      { label: "負債比率(D/E)", value: e.debtToEquity != null ? `${e.debtToEquity.toFixed(0)}%(基準150%以下)` : "データなし(条件対象外)", pass: e.debtToEquity == null || e.debtToEquity <= 150 },
+    ];
+  }
+  if (id === "growth") {
+    const peg = e.per != null && e.earningsGrowth != null && e.earningsGrowth !== 0 ? e.per / e.earningsGrowth : null;
+    return [
+      { label: "利益成長率", value: e.earningsGrowth != null ? `${e.earningsGrowth.toFixed(1)}%(基準15%以上)` : "データなし", pass: e.earningsGrowth != null && e.earningsGrowth >= 15 },
+      { label: "PEGレシオ", value: peg != null ? `${peg.toFixed(2)}(基準1.5以下)` : "データなし", pass: peg != null && peg <= 1.5 },
     ];
   }
   if (id === "income") {
@@ -218,6 +247,7 @@ export function explainFilter(id: BasePersonaId, e: DailyScreenEntry): FilterExp
     return [
       { label: "配当利回り", value: e.dividendYield != null ? `${e.dividendYield.toFixed(2)}%(基準2.5%以上)` : "データなし", pass: e.dividendYield != null && e.dividendYield >= 2.5 },
       { label: "財務健全性", value: `${ratioLabel(e.qualityScore, e.qualityTotal)}(基準60%以上)`, pass: qRatio != null && qRatio >= 0.6 },
+      { label: "利益成長率(減配リスク)", value: e.earningsGrowth != null ? `${e.earningsGrowth.toFixed(1)}%(基準-5%以上)` : "データなし(条件対象外)", pass: e.earningsGrowth == null || e.earningsGrowth >= -5 },
     ];
   }
   // event

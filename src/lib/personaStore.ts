@@ -114,13 +114,18 @@ function exitReasonFor(id: PersonaId, h: PersonaHolding, latest: DailyScreenEntr
   if (price <= h.stopLoss) return "損切り";
   if (price >= h.takeProfit) return "利確";
   if (id === "committee") {
-    const { grade } = computeOverallScore(latest);
-    if (grade === "C" || grade === "D") return "総合評価の低下";
+    // エントリー基準(ROE15%以上・PER20倍以下)より緩く取り、小さな変動での頻繁な入れ替わりを避ける。
+    if (latest.roe != null && latest.roe < 8) return "ROEの低下(質の悪化)";
+    if (latest.per != null && latest.per > 30) return "PERの割高化";
   }
   if (id === "value") {
-    if (latest.fundamentalRoleScore != null && latest.fundamentalRoleTotal > 0 && latest.fundamentalRoleScore / latest.fundamentalRoleTotal < 0.5) {
-      return "ファンダメンタルの悪化";
-    }
+    if (latest.pbr != null && latest.pbr > 2.5) return "PBRの割高化(割安さの消失)";
+    if (latest.per != null && latest.per > 25) return "PERの割高化(割安さの消失)";
+  }
+  if (id === "growth") {
+    if (latest.earningsGrowth != null && latest.earningsGrowth < 0) return "利益成長の鈍化";
+    const peg = latest.per != null && latest.earningsGrowth != null && latest.earningsGrowth > 0 ? latest.per / latest.earningsGrowth : null;
+    if (peg != null && peg > 3) return "PEGレシオの割高化";
   }
   if (id === "risk") {
     if (latest.qualityScore != null && latest.qualityTotal > 0 && latest.qualityScore / latest.qualityTotal < 0.6) {

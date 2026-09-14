@@ -6,12 +6,14 @@ import type { ScreenMarket } from "./dailyScreenStore";
 // personaStore.ts経由でfsまでバンドルに含まれてビルドエラーになるため。
 // ※ScreenMarketは型のみの参照なのでdailyScreenStore.ts本体はバンドルされない。
 
-export type PersonaId = "trend" | "committee" | "value" | "risk" | "income" | "event" | "manager";
+export type PersonaId = "trend" | "committee" | "value" | "growth" | "risk" | "income" | "event" | "manager";
 
-// 「素の」3運用者(trend/committee/value)は独自ルールで日々売買する。
-// managerはその3人の意見(=その日それぞれが「買いたい」と判定した候補)を聞いたうえで、
-// 複数人が支持した銘柄だけを厳選して採用する「最終決定者」役。人間の判断を最終採否だけに
-// 絞りたい、という発想を模したポジション。
+// 「素の」運用者(manager以外)は、それぞれ実在の著名投資家の基準(PER/PBR/ROE/売上成長率などの
+// 生データ)に沿った独自ルールで日々売買する。managerはその全員の意見(=その日それぞれが
+// 「買いたい」と判定した候補)を聞いたうえで、過半数が支持した銘柄だけを厳選して採用する
+// 「最終決定者」役。人間の判断を最終採否だけに絞りたい、という発想を模したポジション。
+// リスク管理型・イベント警戒型は特定の投資家というより「守り」「タイミング回避」という
+// ポートフォリオ運用上の別軸の発想のため、投資家名を冠していない。
 
 export interface PersonaDef {
   id: PersonaId;
@@ -36,8 +38,8 @@ export const BASE_PERSONA_DEFS: PersonaDef[] = [
   },
   {
     id: "committee",
-    label: "総合スコア型(投資委員会)",
-    description: "総合評価(ミネルヴィニ/CANSLIM/財務健全性/委員会合議の平均)が高い銘柄をバランスよく買う。",
+    label: "グリーンブラット型(マジックフォーミュラ)",
+    description: "ROE(質の高さ)とPERの低さ(割安さ)を組み合わせて選ぶ、質×割安の2軸重視型。",
     stopLossPct: -10,
     takeProfitPct: 20,
     maxNewEntriesPerDay: 2,
@@ -45,10 +47,19 @@ export const BASE_PERSONA_DEFS: PersonaDef[] = [
   },
   {
     id: "value",
-    label: "バリュー型(ファンダメンタル重視)",
-    description: "ファンダメンタル役・財務健全性スコアが高い銘柄を選び、じっくり保有する長期志向。",
+    label: "グレアム型(ディープバリュー)",
+    description: "PBR・PERが低く、流動比率が高く負債が少ない、割安かつ財務が固い銘柄だけを選ぶ長期志向。",
     stopLossPct: -12,
     takeProfitPct: 24,
+    maxNewEntriesPerDay: 2,
+    maxHoldings: 8,
+  },
+  {
+    id: "growth",
+    label: "リンチ型(GARP成長株)",
+    description: "利益成長率が高いのに、その成長率に対してPERが割安(PEGレシオが低い)銘柄を狙う成長株投資。",
+    stopLossPct: -10,
+    takeProfitPct: 25,
     maxNewEntriesPerDay: 2,
     maxHoldings: 8,
   },
@@ -63,8 +74,8 @@ export const BASE_PERSONA_DEFS: PersonaDef[] = [
   },
   {
     id: "income",
-    label: "インカム型(配当重視)",
-    description: "配当利回りが高く財務も健全な銘柄を選び、値上がり益より安定した配当収入を狙う長期保有志向。",
+    label: "シーゲル型(配当長期)",
+    description: "配当利回りが高く、利益も減っていない(減配リスクが低い)財務健全な銘柄を選び、配当再投資による長期の複利を狙う。",
     stopLossPct: -12,
     takeProfitPct: 30,
     maxNewEntriesPerDay: 1,
@@ -84,7 +95,7 @@ export const BASE_PERSONA_DEFS: PersonaDef[] = [
 export const MANAGER_DEF: PersonaDef = {
   id: "manager",
   label: "統括マネージャー",
-  description: "他の6運用者のうち過半数が支持した銘柄だけを厳選して採用する、最終決定者役。1日1銘柄まで。",
+  description: "他の運用者のうち過半数が支持した銘柄だけを厳選して採用する、最終決定者役。1日1銘柄まで。",
   stopLossPct: -10,
   takeProfitPct: 20,
   maxNewEntriesPerDay: 1,
