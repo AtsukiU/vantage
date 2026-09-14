@@ -85,7 +85,7 @@ export function WatchlistTab({
   return (
     <section hidden={hidden} className="h-full">
       <GlassPageShell>
-        <div className={`${GLASS_CARD} mb-4`}>
+        <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
           <div className="flex items-center gap-2">
             <Eye size={15} strokeWidth={2.25} className="text-[var(--accent)]" />
             <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">ウォッチリスト</h2>

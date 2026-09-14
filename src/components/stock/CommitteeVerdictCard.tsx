@@ -115,7 +115,9 @@ export function CommitteeVerdictCard({
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+      {/* スマホ幅は1列(役ごとに横幅いっぱいの行)にして、役名+判定が窮屈に折り返されるのを防ぐ。
+          sm以上は従来通りの5列グリッド+中央寄せに戻す。 */}
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-5">
         {(Object.keys(committee.roles) as (keyof CommitteeVerdict["roles"])[])
           .filter((role) => role !== "pm")
           .map((role) => {
@@ -123,11 +125,11 @@ export function CommitteeVerdictCard({
             return (
               <div
                 key={role}
-                className="rounded-lg px-2.5 py-2 text-center"
+                className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 sm:block sm:text-center"
                 style={{ background: value === true ? "rgba(47,158,92,.1)" : "var(--fill-pill)" }}
               >
                 <div className="text-[11px] text-[var(--text-secondary)]">{ROLE_LABEL[role]}</div>
-                <div className="mt-0.5 text-[12.5px] font-extrabold" style={{ color: value === true ? GOOD : NEUTRAL }}>
+                <div className="text-[12.5px] font-extrabold sm:mt-0.5" style={{ color: value === true ? GOOD : NEUTRAL }}>
                   {value === true ? "賛成" : value === false ? "反対/中立" : "判定中…"}
                 </div>
               </div>

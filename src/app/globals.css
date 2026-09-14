@@ -387,6 +387,16 @@ body {
   textarea {
     font-size: 16px !important;
   }
+
+  /* スマホではネイティブアプリのようにスクロールバーを常時表示しなくてよいため、
+     どの要素のスクロールでも一括で隠す(PC/タブレット幅は従来通り表示する)。 */
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes ticker {

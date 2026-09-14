@@ -190,7 +190,7 @@ export function DailyPicksTab({
   return (
     <section hidden={hidden} className="h-full">
       <GlassPageShell>
-        <div className={`${GLASS_CARD} mb-4`}>
+        <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
           <div>
             <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">本日の注目銘柄</h2>
             <p className="mt-1 text-xs text-[var(--text-secondary)]">

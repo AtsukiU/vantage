@@ -107,7 +107,7 @@ export function CompareTab({
   return (
     <section hidden={hidden} className="h-full">
       <GlassPageShell>
-        <div className={`${GLASS_CARD} mb-4`}>
+        <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
           <h2 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">
             銘柄比較 <span className="font-mono font-normal text-[var(--text-secondary)]">(最大{MAX_SLOTS}銘柄)</span>
           </h2>

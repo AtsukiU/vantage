@@ -123,7 +123,7 @@ export function PersonasTab({
     <section hidden={hidden} className="h-full">
       <GlassPageShell>
         <FxOutlookCard />
-        <div className={`${GLASS_CARD} mb-4`}>
+        <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
           <div className="flex items-center gap-2">
             <Users size={16} strokeWidth={2.25} className="text-[var(--accent)]" />
             <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">運用アドバイザー</h2>

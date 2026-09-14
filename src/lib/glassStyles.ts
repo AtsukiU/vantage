@@ -14,8 +14,9 @@ export const GLASS_BORDER = "var(--border-subtle)";
 
 // カードの角丸・背景・ぼかし・影はテーマごとに変わる(globals.cssの--card-*参照)。
 // ゴールドテーマは従来通りの半透明グラス、他テーマはそれぞれの参考画像に寄せたフラット/ソリッドな質感になる。
+// スマホ幅は縦の情報量を稼ぐため内側の余白を少し詰める(p-3)。sm以上は従来通りp-4。
 export const GLASS_CARD =
-  "rounded-[var(--card-radius)] border border-[var(--card-border)] bg-[var(--card-bg)] backdrop-blur-[var(--card-blur)] p-4 shadow-[var(--card-shadow)]";
+  "rounded-[var(--card-radius)] border border-[var(--card-border)] bg-[var(--card-bg)] backdrop-blur-[var(--card-blur)] p-3 sm:p-4 shadow-[var(--card-shadow)]";
 export const GLASS_PILL_GROUP = "flex gap-[3px] rounded-full bg-[var(--fill-pill)] p-[3px]";
 export const GLASS_BTN_PRIMARY =
   "rounded-full bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-hover)] disabled:opacity-40";

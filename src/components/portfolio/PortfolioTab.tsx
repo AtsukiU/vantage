@@ -297,7 +297,7 @@ export function PortfolioTab({
     <section hidden={hidden} className="h-full">
       <GlassPageShell>
         {(holdings.length > 0 || cashJpy !== 0) && (
-          <div className={`${GLASS_CARD} mb-4`}>
+          <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
             <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
               <div>
                 <div className="text-xs text-[var(--text-secondary)]">総資産(円換算)</div>
@@ -377,7 +377,7 @@ export function PortfolioTab({
           </div>
         )}
 
-        <div className={`${GLASS_CARD} mb-4`}>
+        <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
           <div className="flex items-center gap-2">
             <ClipboardCheck size={15} strokeWidth={2.25} className="text-[var(--accent)]" />
             <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">ポートフォリオアドバイザー</h2>
@@ -483,7 +483,7 @@ export function PortfolioTab({
           )}
         </div>
 
-        <div className={`${GLASS_CARD} mb-4`}>
+        <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
           <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">銘柄を購入</h2>
           <p className="mb-2 mt-1 text-[11px] text-[var(--text-muted)]">購入代金+手数料(SBI証券換算)を上の手元資金から自動的に差し引きます。</p>
           <StockSearchBar

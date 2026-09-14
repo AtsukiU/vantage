@@ -50,7 +50,7 @@ export function FxOutlookCard() {
 
   if (!outlook) {
     return (
-      <div className={`${GLASS_CARD} mb-4`}>
+      <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
         <div className="flex items-center gap-2">
           <ArrowLeftRight size={15} strokeWidth={2.25} className="text-[var(--accent)]" />
           <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">為替観測(円安/円高)</h2>
@@ -64,7 +64,7 @@ export function FxOutlookCard() {
   const color = PHASE_COLOR[outlook.phase];
 
   return (
-    <div className={`${GLASS_CARD} mb-4`}>
+    <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ArrowLeftRight size={15} strokeWidth={2.25} className="text-[var(--accent)]" />

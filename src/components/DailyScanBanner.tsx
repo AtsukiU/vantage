@@ -172,7 +172,7 @@ export function DailyScanBanner({ onStart, compact = false }: { onStart?: () => 
       { done: 0, total: 0 }
     );
     return (
-      <div className={`${GLASS_CARD} mb-4`}>
+      <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
         <div className="flex items-center gap-2">
           <Rocket size={16} strokeWidth={2.25} className="text-[var(--accent)]" />
           <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">今日の取引の準備中…</h2>
@@ -205,7 +205,7 @@ export function DailyScanBanner({ onStart, compact = false }: { onStart?: () => 
   }
 
   return (
-    <div className={`${GLASS_CARD} mb-4`}>
+    <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
       <div className="flex items-center gap-2">
         <Rocket size={16} strokeWidth={2.25} className="text-[var(--accent)]" />
         <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">今日の取引を始めますか?</h2>

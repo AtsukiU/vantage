@@ -46,7 +46,7 @@ export function SettingsTab({ hidden }: { hidden: boolean }) {
   return (
     <section hidden={hidden} className="h-full">
       <GlassPageShell>
-        <div className={`${GLASS_CARD} mb-4`}>
+        <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
           <div className="flex items-center gap-2">
             <Palette size={16} strokeWidth={2.25} className="text-[var(--accent)]" />
             <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">設定</h2>
@@ -54,7 +54,7 @@ export function SettingsTab({ hidden }: { hidden: boolean }) {
           <p className="mt-1 text-xs text-[var(--text-secondary)]">アプリの見た目のテーマを切り替えられます。この端末のブラウザにのみ保存されます。</p>
         </div>
 
-        <div className={`${GLASS_CARD} mb-4`}>
+        <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
           <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">明るさ</h3>
           <div className="grid grid-cols-3 gap-3">
             {MODES.map((m) => {
