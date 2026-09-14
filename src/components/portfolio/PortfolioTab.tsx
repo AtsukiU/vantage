@@ -572,7 +572,7 @@ export function PortfolioTab({
                         onClick={() => onOpenDetail(h.ticker, h.name)}
                         className="min-w-0 text-left"
                       >
-                        <div className="truncate font-semibold text-[var(--foreground)] hover:text-[var(--accent)] hover:underline">{h.name}</div>
+                        <div className="font-semibold text-[var(--foreground)] hover:text-[var(--accent)] hover:underline">{h.name}</div>
                         <div className="font-mono text-[11px] text-[var(--text-secondary)]">
                           {h.ticker} ・ {h.shares.toLocaleString()}株 @ {currencyPrefix(h.currency)}
                           {fmt(h.avgCost, h.currency)}

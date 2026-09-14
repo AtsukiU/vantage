@@ -139,9 +139,7 @@ export function NewsFeed({
       <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
         <span>
           {data
-            ? `更新: ${relativeTimeJa(data.updatedAt)} (${formatClock(
-                data.updatedAt
-              )}) ・ ${data.count}件`
+            ? `更新: ${relativeTimeJa(data.updatedAt)} ・ ${data.count}件`
             : "読み込み中..."}
         </span>
         <button

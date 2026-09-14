@@ -205,7 +205,7 @@ export function DailyPicksTab({
               <button
                 key={v.key}
                 onClick={() => setView(v.key)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   view === v.key ? "bg-[var(--surface)] text-[var(--accent)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--foreground)]"
                 }`}
               >
@@ -290,7 +290,7 @@ export function DailyPicksTab({
                 <button
                   key={f.threshold}
                   onClick={() => setRsFilter(f.threshold)}
-                  className={`rounded-full px-3 py-1 text-[11px] font-semibold transition ${
+                  className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold transition ${
                     rsFilter === f.threshold ? "bg-[var(--surface)] text-[var(--accent)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--foreground)]"
                   }`}
                 >
@@ -321,20 +321,26 @@ export function DailyPicksTab({
                     onClick={() => onOpenDetail(r.ticker, r.name ?? r.ticker)}
                     className="flex w-full flex-col gap-1.5 px-4 py-3 text-left transition hover:bg-[var(--fill-subtle)]"
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {view === "all" && (
-                            <span
-                              className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white"
-                              style={{ background: MARKET_TAG[r.sourceMarket].color }}
-                            >
-                              {MARKET_TAG[r.sourceMarket].label}
-                            </span>
-                          )}
-                          <span className="truncate font-semibold text-[var(--foreground)]">{r.name ?? r.ticker}</span>
-                        </div>
-                        <div className="font-mono text-[11px] text-[var(--text-secondary)]">{r.ticker}</div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {view === "all" && (
+                        <span
+                          className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white"
+                          style={{ background: MARKET_TAG[r.sourceMarket].color }}
+                        >
+                          {MARKET_TAG[r.sourceMarket].label}
+                        </span>
+                      )}
+                      <span className="font-semibold text-[var(--foreground)]">{r.name ?? r.ticker}</span>
+                    </div>
+                    <div className="font-mono text-[11px] text-[var(--text-secondary)]">{r.ticker}</div>
+                    <div className="flex items-center justify-between gap-2 text-[15px] tabular-nums">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[var(--foreground)]">
+                          {r.price != null ? `${currencyPrefix}${r.price.toLocaleString("ja-JP")}` : "—"}
+                        </span>
+                        <span className="font-semibold" style={{ color: r.dayChangePercent == null ? GLASS_TEXT2 : up ? GLASS_UP : GLASS_DOWN }}>
+                          {r.dayChangePercent != null ? `${up ? "▲" : "▼"} ${r.dayChangePercent.toFixed(2)}%` : "—"}
+                        </span>
                       </div>
                       <OverallScoreBadge
                         score={r.overallScore}
@@ -349,14 +355,6 @@ export function DailyPicksTab({
                           committeeRoles: r.committeeRoles,
                         }}
                       />
-                    </div>
-                    <div className="flex items-center justify-between text-[15px] tabular-nums">
-                      <span className="text-[var(--foreground)]">
-                        {r.price != null ? `${currencyPrefix}${r.price.toLocaleString("ja-JP")}` : "—"}
-                      </span>
-                      <span className="font-semibold" style={{ color: r.dayChangePercent == null ? GLASS_TEXT2 : up ? GLASS_UP : GLASS_DOWN }}>
-                        {r.dayChangePercent != null ? `${up ? "▲" : "▼"} ${r.dayChangePercent.toFixed(2)}%` : "—"}
-                      </span>
                     </div>
                     {isCommitteeRecommended(r) && (
                       <span

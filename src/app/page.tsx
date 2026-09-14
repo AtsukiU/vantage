@@ -292,7 +292,7 @@ function HomeContent() {
                   <button
                     key={m.key}
                     onClick={() => setNewsMarket(m.key)}
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                       newsMarket === m.key ? "bg-[var(--surface)] text-[var(--accent)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--foreground)]"
                     }`}
                   >

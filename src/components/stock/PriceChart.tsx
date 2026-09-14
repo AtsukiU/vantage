@@ -63,7 +63,7 @@ export function PriceChart({ points, range, onRangeChange }: PriceChartProps) {
             <button
               key={r.key}
               onClick={() => onRangeChange(r.key)}
-              className={`rounded-full px-[11px] py-[5px] text-[11px] font-semibold transition ${
+              className={`shrink-0 whitespace-nowrap rounded-full px-[11px] py-[5px] text-[11px] font-semibold transition ${
                 range === r.key ? "bg-[var(--surface)] text-[var(--foreground)] shadow-sm" : "text-[var(--text-secondary)]"
               }`}
             >

@@ -126,7 +126,7 @@ export function WatchlistTab({
                   <div key={item.ticker} className="flex flex-col gap-1.5 px-4 py-3">
                     <div className="flex items-start justify-between gap-2">
                       <button onClick={() => onOpenDetail(item.ticker, item.name)} className="min-w-0 text-left">
-                        <div className="truncate font-semibold text-[var(--foreground)] hover:text-[var(--accent)] hover:underline">{item.name}</div>
+                        <div className="font-semibold text-[var(--foreground)] hover:text-[var(--accent)] hover:underline">{item.name}</div>
                         <div className="font-mono text-[11px] text-[var(--text-secondary)]">{item.ticker}</div>
                       </button>
                       <button onClick={() => handleRemove(item.ticker)} className="shrink-0 text-xs text-[var(--text-muted)] hover:text-red-600">
