@@ -83,14 +83,14 @@ export function WatchlistTab({
   }
 
   return (
-    <section hidden={hidden}>
-      <GlassPageShell maxWidth="max-w-4xl">
+    <section hidden={hidden} className="h-full">
+      <GlassPageShell>
         <div className={`${GLASS_CARD} mb-4`}>
           <div className="flex items-center gap-2">
-            <Eye size={15} strokeWidth={2.25} className="text-[#c9962f]" />
-            <h2 className="text-[13px] font-extrabold text-[#1c1b18]">ウォッチリスト</h2>
+            <Eye size={15} strokeWidth={2.25} className="text-[var(--accent)]" />
+            <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">ウォッチリスト</h2>
           </div>
-          <p className="mt-1 text-[11px] text-[#6c6656]">
+          <p className="mt-1 text-[11px] text-[var(--text-secondary)]">
             保有していないが気になる銘柄を並べて眺めるためのリストです(ポートフォリオとは別で、株数・取得単価は不要)。
           </p>
           <div className="mt-3">
@@ -100,12 +100,12 @@ export function WatchlistTab({
 
         <div className={`${GLASS_CARD} overflow-hidden p-0`}>
           {items.length === 0 ? (
-            <div className="p-8 text-center text-sm text-[#6c6656]">
+            <div className="p-8 text-center text-sm text-[var(--text-secondary)]">
               まだ銘柄がありません。上の検索から追加してください。
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="border-b border-[#e2dfd2] bg-[#f7f6f1] text-left text-xs text-[#6c6656]">
+              <thead className="border-b border-[var(--border-subtle)] bg-[var(--fill-subtle)] text-left text-xs text-[var(--text-secondary)]">
                 <tr>
                   <th className="px-4 py-2 font-medium">銘柄</th>
                   <th className="px-3 py-2 text-right font-medium">価格</th>
@@ -131,17 +131,17 @@ export function WatchlistTab({
                     committeeTotal: m?.committeeTotal ?? COMMITTEE_TOTAL,
                   });
                   return (
-                    <tr key={item.ticker} className="border-b border-[#efece2] last:border-0">
+                    <tr key={item.ticker} className="border-b border-[var(--border-faint)] last:border-0">
                       <td className="px-4 py-2.5">
                         <button
                           onClick={() => onOpenDetail(item.ticker, item.name)}
-                          className="text-left font-semibold text-[#1c1b18] hover:text-[#c9962f] hover:underline"
+                          className="text-left font-semibold text-[var(--foreground)] hover:text-[var(--accent)] hover:underline"
                         >
                           {item.name}
                         </button>
-                        <div className="font-mono text-xs text-[#6c6656]">{item.ticker}</div>
+                        <div className="font-mono text-xs text-[var(--text-secondary)]">{item.ticker}</div>
                       </td>
-                      <td className="px-3 py-2.5 text-right text-[15px] tabular-nums text-[#1c1b18]">
+                      <td className="px-3 py-2.5 text-right text-[15px] tabular-nums text-[var(--foreground)]">
                         {loading && price == null ? "…" : price != null ? `${prefix(currency)}${fmt(price, currency)}` : "—"}
                       </td>
                       <td className="px-3 py-2.5 text-right text-[15px] tabular-nums font-semibold" style={{ color: m?.dayChangePercent == null ? GLASS_TEXT2 : up ? GLASS_UP : GLASS_DOWN }}>
@@ -163,7 +163,7 @@ export function WatchlistTab({
                         />
                       </td>
                       <td className="px-4 py-2.5 text-right">
-                        <button onClick={() => handleRemove(item.ticker)} className="text-xs text-[#a39d8c] hover:text-red-600">
+                        <button onClick={() => handleRemove(item.ticker)} className="text-xs text-[var(--text-muted)] hover:text-red-600">
                           削除
                         </button>
                       </td>
@@ -174,8 +174,8 @@ export function WatchlistTab({
             </table>
           )}
         </div>
-        <p className="mt-3 text-xs text-[#a39d8c]">
-          ウォッチリストはこのブラウザにのみ保存されます。スコアは銘柄詳細ページと同じ計算です。
+        <p className="mt-3 text-xs text-[var(--text-muted)]">
+          ウォッチリストはこの端末に保存されます(Upstash設定時は端末間で同期)。スコアは銘柄詳細ページと同じ計算です。
         </p>
       </GlassPageShell>
     </section>

@@ -1,4 +1,10 @@
 import { fetchYahooAuthenticated, num, type RawNum } from "./stockMetrics";
+import { cachedFundamental } from "./fundamentalsCache";
+
+// インサイダー・機関投資家・アナリスト格上げ下げ・決算サプライズは1日単位で頻繁には
+// 変わらないため、1日はディスクキャッシュを使い回す(本日の注目銘柄フルスキャンでの
+// 重複問い合わせを削減する)。
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 // 「他の投資家が実際に何を見ているか」系のシグナルをまとめて取得する。
 // インサイダー売買・機関投資家保有動向・空売り比率・アナリスト格上げ/格下げの勢い・決算サプライズ実績。
@@ -150,6 +156,10 @@ const MODULES = [
 ].join(",");
 
 export async function fetchStockSignals(ticker: string): Promise<StockSignals> {
+  return cachedFundamental(`signals:${ticker}`, CACHE_TTL_MS, () => fetchStockSignalsUncached(ticker));
+}
+
+async function fetchStockSignalsUncached(ticker: string): Promise<StockSignals> {
   const res = await fetchYahooAuthenticated(
     (crumb) =>
       `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(

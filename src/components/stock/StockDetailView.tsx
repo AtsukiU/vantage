@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isFinancialSector, type StockMetrics } from "@/lib/stockMetrics";
+import type { StockMetrics } from "@/lib/stockMetrics";
+import { isFinancialSector } from "@/lib/stockMetricsShared";
 import type { PricePoint, ChartRange } from "@/lib/stockChart";
 import type { StockInsight } from "@/lib/stockInsights";
 import type { GaugeSpec } from "@/lib/stockGauges";
@@ -30,6 +31,8 @@ import { computeUsForecast } from "@/lib/stockForecast";
 import { UsForecastCard } from "./UsForecastCard";
 import { buildPickSummary } from "@/lib/stockPickSummary";
 import { translateUnique } from "@/lib/translateClient";
+import { WatchlistToggleButton } from "./WatchlistToggleButton";
+import { AddToPortfolioForm } from "./AddToPortfolioForm";
 
 interface DetailResponse {
   metrics: StockMetrics;
@@ -51,7 +54,9 @@ interface DetailResponse {
   relativeStrengthPct: number | null;
 }
 
-const CARD = "rounded-[18px] border border-[#e2dfd2] bg-white/85 p-5";
+// 以前はbg-white/85で固定していたが、ダークモード導入に伴い他タブと同じ
+// var(--card-bg)系(テーマ・明暗モードで自動追従)に統一。
+const CARD = "rounded-[18px] border border-[var(--card-border)] bg-[var(--card-bg)] backdrop-blur-[var(--card-blur)] p-5";
 
 const RECOMMENDATION_LABEL: Record<string, string> = {
   strong_buy: "強気買い",
@@ -185,11 +190,11 @@ export function StockDetailView({
   }, [detail]);
 
   if (detailLoading && !detail) {
-    return <div className="py-16 text-center text-sm text-[#6c6656]">読み込み中…</div>;
+    return <div className="py-16 text-center text-sm text-[var(--text-secondary)]">読み込み中…</div>;
   }
   if (detailError) {
     return (
-      <div className={`${CARD} text-[13px] text-[#c0392b]`}>
+      <div className={`${CARD} text-[13px] text-[var(--price-up)]`}>
         {detailError}
       </div>
     );
@@ -264,44 +269,51 @@ export function StockDetailView({
       <div className={`${CARD} mb-4`}>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-xl font-extrabold text-[#1c1b18]">{metrics.name ?? symbol}</h2>
-            <div className="font-mono text-[12.5px] text-[#6c6656]">
+            <h2 className="text-xl font-extrabold text-[var(--foreground)]">{metrics.name ?? symbol}</h2>
+            <div className="font-mono text-[12.5px] text-[var(--text-secondary)]">
               {metrics.ticker}
               {metrics.sector ? ` ・ ${metrics.sector}` : ""}
             </div>
             {businessSummaryShort && (
-              <p className="mt-1 max-w-md text-[11px] leading-relaxed text-[#6c6656]">{translatedSummary ?? businessSummaryShort}</p>
+              <p className="mt-1 max-w-md text-[11px] leading-relaxed text-[var(--text-secondary)]">{translatedSummary ?? businessSummaryShort}</p>
             )}
             {pickSummary && (
-              <p className="mt-0.5 max-w-md text-[11px] font-semibold text-[#c9962f]">{pickSummary}</p>
+              <p className="mt-0.5 max-w-md text-[11px] font-semibold text-[var(--accent)]">{pickSummary}</p>
             )}
           </div>
-          <div className="text-right">
-            <div className="font-mono text-3xl font-extrabold tabular-nums text-[#1c1b18]">
-              {metrics.price != null
-                ? `${currencyPrefix}${metrics.price.toLocaleString("ja-JP", {
-                    minimumFractionDigits: metrics.currency === "JPY" ? 0 : 2,
-                    maximumFractionDigits: metrics.currency === "JPY" ? 0 : 2,
-                  })}`
-                : "—"}
-            </div>
-            {metrics.dayChangePercent != null && (
-              <div
-                className="text-[13px] font-bold tabular-nums"
-                style={{ color: isUp ? "#c0392b" : "#2f6fb0" }}
-              >
-                {isUp ? "▲" : "▼"} {metrics.dayChangePercent.toFixed(2)}%
+          <div className="flex items-end gap-3">
+            <div className="text-right">
+              <div className="font-mono text-3xl font-extrabold tabular-nums text-[var(--foreground)]">
+                {metrics.price != null
+                  ? `${currencyPrefix}${metrics.price.toLocaleString("ja-JP", {
+                      minimumFractionDigits: metrics.currency === "JPY" ? 0 : 2,
+                      maximumFractionDigits: metrics.currency === "JPY" ? 0 : 2,
+                    })}`
+                  : "—"}
               </div>
-            )}
+              {metrics.dayChangePercent != null && (
+                <div
+                  className="text-[13px] font-bold tabular-nums"
+                  style={{ color: isUp ? "var(--price-up)" : "var(--price-down)" }}
+                >
+                  {isUp ? "▲" : "▼"} {metrics.dayChangePercent.toFixed(2)}%
+                </div>
+              )}
+            </div>
+            <WatchlistToggleButton symbol={symbol} name={metrics.name ?? symbol} />
           </div>
         </div>
 
+        <div className="mt-3">
+          <AddToPortfolioForm symbol={symbol} name={metrics.name ?? symbol} currentPrice={metrics.price} currency={metrics.currency} />
+        </div>
+
         {/* quick facts strip */}
-        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-[#e2dfd2] pt-3 text-[11.5px] text-[#6c6656]">
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-[var(--border-subtle)] pt-3 text-[11px] text-[var(--text-secondary)]">
           {(technicals.week52High != null || technicals.week52Low != null) && (
             <span>
               52週高値/安値{" "}
-              <span className="font-mono text-[#1c1b18]">
+              <span className="font-mono text-[var(--foreground)]">
                 {fmtAmount(technicals.week52High)} / {fmtAmount(technicals.week52Low)}
               </span>
             </span>
@@ -309,16 +321,16 @@ export function StockDetailView({
           {metrics.targetMeanPrice != null && (
             <span>
               アナリスト目標株価{" "}
-              <span className="font-mono text-[#1c1b18]">{fmtAmount(metrics.targetMeanPrice)}</span>
+              <span className="font-mono text-[var(--foreground)]">{fmtAmount(metrics.targetMeanPrice)}</span>
               {metrics.targetLowPrice != null && metrics.targetHighPrice != null && (
-                <span className="font-mono text-[#a39d8c]">
+                <span className="font-mono text-[var(--text-muted)]">
                   {" "}
                   ({fmtAmount(metrics.targetLowPrice)}〜{fmtAmount(metrics.targetHighPrice)}
                   {metrics.numberOfAnalystOpinions != null ? `・${metrics.numberOfAnalystOpinions}名` : ""})
                 </span>
               )}
               {metrics.recommendationKey && (
-                <span className="ml-1 text-[#c9962f]">
+                <span className="ml-1 text-[var(--accent)]">
                   ({RECOMMENDATION_LABEL[metrics.recommendationKey] ?? metrics.recommendationKey})
                 </span>
               )}
@@ -327,9 +339,9 @@ export function StockDetailView({
           {metrics.grahamNumber != null && (
             <span>
               グレアムナンバー{" "}
-              <span className="font-mono text-[#1c1b18]">{fmtAmount(metrics.grahamNumber)}</span>
+              <span className="font-mono text-[var(--foreground)]">{fmtAmount(metrics.grahamNumber)}</span>
               {metrics.price != null && (
-                <span className="ml-1" style={{ color: metrics.price <= metrics.grahamNumber ? "#2f9e5c" : "#a39d8c" }}>
+                <span className="ml-1" style={{ color: metrics.price <= metrics.grahamNumber ? "var(--status-good)" : "var(--text-muted)" }}>
                   ({metrics.price <= metrics.grahamNumber ? "現在値以下" : "現在値超"})
                 </span>
               )}
@@ -337,12 +349,12 @@ export function StockDetailView({
           )}
           {metrics.earningsDate && (
             <span>
-              次回決算 <span className="font-mono text-[#1c1b18]">{formatDate(metrics.earningsDate)}予定</span>
+              次回決算 <span className="font-mono text-[var(--foreground)]">{formatDate(metrics.earningsDate)}予定</span>
             </span>
           )}
           {metrics.exDividendDate && (
             <span>
-              権利落ち日 <span className="font-mono text-[#1c1b18]">{formatDate(metrics.exDividendDate)}</span>
+              権利落ち日 <span className="font-mono text-[var(--foreground)]">{formatDate(metrics.exDividendDate)}</span>
             </span>
           )}
           {yutaiSearchUrl && (
@@ -350,7 +362,7 @@ export function StockDetailView({
               href={yutaiSearchUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[#c9962f] hover:underline"
+              className="inline-flex items-center gap-1 text-[var(--accent)] hover:underline"
             >
               <Gift size={12} strokeWidth={2.25} />
               株主優待を調べる
@@ -362,7 +374,7 @@ export function StockDetailView({
 
       {isEquity && committee && fundamentalRole && sentimentRole && macroRole && minervini && (
         <div className={`${CARD} mb-4`}>
-          <h3 className="mb-3 text-[13px] font-extrabold text-[#1c1b18]">投資委員会</h3>
+          <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">投資委員会</h3>
           <CommitteeVerdictCard
             metrics={metrics}
             technicals={technicals}
@@ -378,34 +390,34 @@ export function StockDetailView({
       )}
 
       <div className="grid items-start gap-4 md:grid-cols-[1fr_320px]">
-        <div className="flex flex-col gap-4">
+        <div className="min-w-0 flex flex-col gap-4">
           <div className={CARD}>
             <PriceChart points={priceHistory} range={range} onRangeChange={setRange} />
           </div>
 
           <div className={CARD}>
-            <h3 className="mb-3 text-[13px] font-extrabold text-[#1c1b18]">テクニカル分析</h3>
+            <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">テクニカル分析</h3>
             <div>
               {horizons.map((h, i) => (
                 <div
                   key={h.horizon}
                   className={`flex gap-3.5 py-2.5 ${i === 0 ? "pt-0" : ""} ${
-                    i === horizons.length - 1 ? "pb-0" : "border-b border-[#e2dfd2]"
+                    i === horizons.length - 1 ? "pb-0" : "border-b border-[var(--border-subtle)]"
                   }`}
                 >
                   <div className="w-14 shrink-0 pt-px">
-                    <span className="inline-block rounded-full bg-[#c9962f]/10 px-2.5 py-0.5 text-[11px] font-extrabold text-[#6c6656]">
+                    <span className="inline-block rounded-full bg-[var(--accent)]/10 px-2.5 py-0.5 text-[11px] font-extrabold text-[var(--text-secondary)]">
                       {h.horizon}
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">
                     <div
                       className="mb-0.5 text-[13px] font-extrabold"
-                      style={{ color: h.good ? "#2f9e5c" : "#1c1b18" }}
+                      style={{ color: h.good ? "var(--status-good)" : "var(--foreground)" }}
                     >
                       {h.verdict}
                     </div>
-                    <div className="text-[12px] leading-relaxed text-[#6c6656]">{h.description}</div>
+                    <div className="text-[12.5px] leading-relaxed text-[var(--text-secondary)]">{h.description}</div>
                   </div>
                 </div>
               ))}
@@ -413,7 +425,7 @@ export function StockDetailView({
           </div>
 
           <div className={CARD}>
-            <h3 className="mb-3 text-[13px] font-extrabold text-[#1c1b18]">ポジションサイジング計算機</h3>
+            <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">ポジションサイジング計算機</h3>
             <PositionSizeCalculator currentPrice={metrics.price} currency={metrics.currency} />
           </div>
 
@@ -459,21 +471,21 @@ export function StockDetailView({
 
           {isEquity && (
             <div className={CARD}>
-              <h3 className="mb-3 text-[13px] font-extrabold text-[#1c1b18]">業績推移(直近5期)</h3>
+              <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">業績推移(直近5期)</h3>
               <FinancialTrendChart data={financialTrend} currency={metrics.currency} />
             </div>
           )}
 
           {isEquity && (
             <div className={CARD}>
-              <h3 className="mb-3 text-[13px] font-extrabold text-[#1c1b18]">他の投資家が見ている指標</h3>
+              <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">他の投資家が見ている指標</h3>
               <InvestorSignalsSection signals={signals} />
             </div>
           )}
 
           {isEquity && (
             <div className={CARD}>
-              <h3 className="mb-3 text-[13px] font-extrabold text-[#1c1b18]">類似銘柄との比較</h3>
+              <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">類似銘柄との比較</h3>
               <PeerComparisonSection
                 peers={peers}
                 baseMetrics={{ per: metrics.per, pbr: metrics.pbr, roe: metrics.roe, dividendYield: metrics.dividendYield }}
@@ -484,13 +496,13 @@ export function StockDetailView({
 
           {isEquity ? (
             <div className={CARD}>
-              <h3 className="mb-3 text-[13px] font-extrabold text-[#1c1b18]">ファンダメンタル分析</h3>
+              <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">ファンダメンタル分析</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="mb-2 text-[12px] font-extrabold text-[#c0392b]">良い点</div>
-                  <ul className="space-y-1 text-[13px] leading-relaxed text-[#1c1b18]">
+                  <div className="mb-2 text-[12.5px] font-extrabold text-[var(--price-up)]">良い点</div>
+                  <ul className="space-y-1 text-[13px] leading-relaxed text-[var(--foreground)]">
                     {insights.strengths.length === 0 && (
-                      <li className="text-[#6c6656]">特筆すべき点はありません</li>
+                      <li className="text-[var(--text-secondary)]">特筆すべき点はありません</li>
                     )}
                     {insights.strengths.map((s, i) => (
                       <li key={i}>{s}</li>
@@ -498,10 +510,10 @@ export function StockDetailView({
                   </ul>
                 </div>
                 <div>
-                  <div className="mb-2 text-[12px] font-extrabold text-[#2f6fb0]">懸念点</div>
-                  <ul className="space-y-1 text-[13px] leading-relaxed text-[#1c1b18]">
+                  <div className="mb-2 text-[12.5px] font-extrabold text-[var(--price-down)]">懸念点</div>
+                  <ul className="space-y-1 text-[13px] leading-relaxed text-[var(--foreground)]">
                     {insights.concerns.length === 0 && (
-                      <li className="text-[#6c6656]">特筆すべき点はありません</li>
+                      <li className="text-[var(--text-secondary)]">特筆すべき点はありません</li>
                     )}
                     {insights.concerns.map((c, i) => (
                       <li key={i}>{c}</li>
@@ -511,16 +523,16 @@ export function StockDetailView({
               </div>
             </div>
           ) : (
-            <div className={`${CARD} text-[12.5px] text-[#6c6656]`}>
+            <div className={`${CARD} text-[12.5px] text-[var(--text-secondary)]`}>
               {assetTypeLabel[metrics.quoteType ?? ""] ?? "この銘柄"}には株式のような財務指標(PER/PBR/ROEなど)がないため、ファンダメンタル分析は表示していません。価格の推移とテクニカル分析でご確認ください。
             </div>
           )}
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="min-w-0 flex flex-col gap-4">
           {isEquity && (
             <div className={CARD}>
-              <h3 className="mb-3 text-[13px] font-extrabold text-[#1c1b18]">主要指標</h3>
+              <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">主要指標</h3>
               <div className="grid grid-cols-2 gap-x-3 gap-y-4">
                 {gauges.map((g) => (
                   <RingGauge
@@ -538,10 +550,10 @@ export function StockDetailView({
           )}
 
           <div className={CARD}>
-            <h3 className="mb-3 text-[13px] font-extrabold text-[#1c1b18]">関連ニュース</h3>
-            {newsLoading && <div className="text-[12.5px] text-[#6c6656]">読み込み中…</div>}
+            <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">関連ニュース</h3>
+            {newsLoading && <div className="text-[12.5px] text-[var(--text-secondary)]">読み込み中…</div>}
             {!newsLoading && news.length === 0 && (
-              <div className="text-[12.5px] text-[#6c6656]">関連ニュースが見つかりませんでした</div>
+              <div className="text-[12.5px] text-[var(--text-secondary)]">関連ニュースが見つかりませんでした</div>
             )}
             <div>
               {news.slice(0, 6).map((item, i, arr) => (
@@ -554,10 +566,10 @@ export function StockDetailView({
                     i === arr.length - 1 ? "pb-0" : "border-b border-black/[0.06]"
                   }`}
                 >
-                  <div className="mb-1 text-[11px] text-[#6c6656]">
+                  <div className="mb-1 text-[11px] text-[var(--text-secondary)]">
                     {item.source} ・ {relativeTimeJa(item.pubDate)}
                   </div>
-                  <div className="text-[13px] font-bold leading-snug text-[#1c1b18]">{item.title}</div>
+                  <div className="text-[13px] font-bold leading-snug text-[var(--foreground)]">{item.title}</div>
                 </a>
               ))}
             </div>

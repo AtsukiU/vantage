@@ -1,8 +1,347 @@
 @import "tailwindcss";
 
+/* ガラス×インフォグラフィック調が既定(ゴールド)テーマの世界観だが、他3テーマは
+   色だけでなく「カードの質感(角丸・ぼかし・影)」「ナビ要素の角丸」も変え、参考にした
+   3枚の画像それぞれの雰囲気を再現する(設定タブ、themeStore.ts参照)。見出しフォントは
+   テーマごとに変える案も試したが、統一感を優先して全テーマ共通のまま。
+   <html data-theme="..."> で切り替える。本文の文字色・境界線グレーなど細部の中間トーンは
+   共通のまま(可読性と実装コストのバランス)。 */
 :root {
   --background: #f2ead2;
   --foreground: #1c1b18;
+  --accent: #c9962f;
+  --accent-hover: #ab7d24;
+  --accent-strong: #cf9a4c;
+  --hero: #d9662c;
+  --glow: #f5c84c;
+  --card-radius: 18px;
+  --card-bg: rgba(255, 255, 255, 0.48);
+  --card-border: rgba(255, 255, 255, 0.45);
+  --card-blur: 16px;
+  --card-shadow: 0 1px 2px rgba(28, 27, 24, 0.04), 0 10px 24px -8px rgba(28, 27, 24, 0.1);
+  --nav-radius: 16px;
+  /* 「推し」カード(本日の注目1位、買い推奨で今すぐ買える銘柄、統括マネージャー等)を
+     淡いアクセント色→ほぼ白のグラデーションで目立たせる時に使う。 */
+  --gradient-hero: linear-gradient(135deg, #f6e2b8, #fdf8ee);
+  --gradient-hero-border: rgba(201, 150, 47, 0.35);
+  /* サイドバー・ダッシュボードのヒーローカードの背景(白→ページ背景→アクセントへ淡く抜ける)。 */
+  --gradient-sidebar: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(253, 248, 238, 0.42) 55%, rgba(246, 226, 184, 0.34) 100%);
+  --gradient-dashboard-hero: linear-gradient(135deg, rgba(253, 248, 238, 0.55) 0%, rgba(246, 226, 184, 0.42) 55%, rgba(224, 169, 48, 0.28) 100%);
+  /* ダッシュボードの「単色4段階トーン」配色(濃→淡)。総資産の数字・推移グラフ・
+     セクター/現金比率バーなど、1つの色相の濃淡だけで情報を区別する箇所に使う。
+     アクセントカラーと同系統の色相で、テーマ切替に合わせて自動的に変わる。 */
+  --tone-1: #8a6318;
+  --tone-2: #c9962f;
+  --tone-3: #dfb567;
+  --tone-4: #f3ddb0;
+
+  /* 本文の文字色・境界線・薄い塗りつぶしなど、5つのアクセントカラーテーマ全てで共通の
+     「中間トーン」。以前はコンポーネント側で直接#1c1b18等をハードコードしていたため、
+     ダークモードに対応できなかった(30以上のファイルに散らばっていた)。変数化することで、
+     ダークモードでは下の[data-mode="dark"]ブロックだけを差し替えれば全体に反映される。
+     価格上昇/下落・良好/警告などの意味色も同様の理由で変数化している
+     (ただし白文字を乗せる固定バッジ色の一部は意図的に変数化していない場所もある
+     ―― 各コンポーネントのコメント参照)。 */
+  --text-secondary: #6c6656;
+  --text-muted: #a39d8c;
+  --border-subtle: #e2dfd2;
+  --border-faint: #efece2;
+  --fill-subtle: #f7f6f1;
+  --fill-pill: #f0efe6;
+  --price-up: #c0392b;
+  --price-down: #2f6fb0;
+  --status-good: #2f9e5c;
+  --status-good-soft: #7dd3ae;
+  --status-bad-soft: #e0a8a3;
+  --status-danger: #a32d2d;
+  /* --card-bgは半透明(ページの背景がブラーで透けるガラスカード用)なので、検索ボックスの
+     入力欄やドロップダウンのような「背後が何でも読めないと困る」不透明面には使えない。
+     そのための、常に不透明なサーフェス色。 */
+  --surface: #ffffff;
+}
+
+/* ダークモード。5色のアクセントテーマ([data-theme="..."])とは独立したレイヤーとして
+   重ねる(どのアクセントテーマを選んでいても併用できる)。:root[data-mode="dark"]は
+   :root[data-theme="X"]と特異度が同じ属性セレクタ2つ分になるため、ソース順に関係なく
+   確実にbackground/card-*系を上書きできる。
+   以前は「OSのダークモード設定には追従させない」判断をしていた(背景が黒くなり短い
+   ページで下部が黒抜けする問題があったため)。その根本原因(GlassPageShellのoverflow
+   クリップ)は今回のセッション中に直っているため、改めてダークモード対応に着手している。 */
+:root[data-mode="dark"] {
+  --background: #16150f;
+  --foreground: #ebe8e0;
+  /* ライトモードのガラス質感(半透明+backdrop-blur)をダークでそのまま再現すると
+     「透けて見づらい」という指摘があったため、ダークモードではガラスをやめて不透明な
+     濃いフラットカードに寄せる(webappらしい見た目、という方向性)。--card-blurも0にして、
+     テーマ側(シアン12px・ゴールド16px等)のぼかし指定をダークでは打ち消す。 */
+  --card-bg: #1c1a14;
+  --card-border: #2f2c22;
+  --card-blur: 0px;
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 24px -10px rgba(0, 0, 0, 0.55);
+  --gradient-hero: rgba(255, 255, 255, 0.06);
+  --gradient-hero-border: rgba(255, 255, 255, 0.16);
+  --gradient-sidebar: #1c1a14;
+  --gradient-dashboard-hero: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+
+  --text-secondary: #a39d8c;
+  --text-muted: #7d765f;
+  --border-subtle: #333126;
+  --border-faint: #29271e;
+  --fill-subtle: #211f18;
+  --fill-pill: #211f18;
+  --price-up: #e2685c;
+  --price-down: #6badf0;
+  --status-good: #3fbd7a;
+  --status-good-soft: #7dd3ae;
+  --status-bad-soft: #e0a8a3;
+  --status-danger: #e05656;
+  --surface: #211f18;
+}
+
+/* 「システムに合わせる」設定(data-mode未指定)の場合、OS側がダークモードならこちらを使う。
+   data-mode="light"を明示的に選んでいる時だけ除外する(:not())。値は上のdata-mode="dark"と
+   同じものを重複して書く必要がある(CSSのメディアクエリは条件付きで発火できないため)。 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode="light"]) {
+    --background: #16150f;
+    --foreground: #ebe8e0;
+    --card-bg: #1c1a14;
+    --card-border: #2f2c22;
+    --card-blur: 0px;
+    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 24px -10px rgba(0, 0, 0, 0.55);
+    --gradient-hero: rgba(255, 255, 255, 0.06);
+    --gradient-hero-border: rgba(255, 255, 255, 0.16);
+    --gradient-sidebar: #1c1a14;
+    --gradient-dashboard-hero: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+
+    --text-secondary: #a39d8c;
+    --text-muted: #7d765f;
+    --border-subtle: #333126;
+    --border-faint: #29271e;
+    --fill-subtle: #211f18;
+    --fill-pill: #211f18;
+    --price-up: #e2685c;
+    --price-down: #6badf0;
+    --status-good: #3fbd7a;
+    --status-good-soft: #7dd3ae;
+    --status-bad-soft: #e0a8a3;
+    --status-danger: #e05656;
+    --surface: #211f18;
+  }
+}
+
+/* 上のダークモード共通ブロックでは、グラデーション類(--gradient-hero・--gradient-sidebar・
+   --gradient-hero-border)を彩度の無い白の透過だけにしていたが、それだと5色のアクセント
+   テーマがダークモードでは全部同じ見た目になってしまう(「シアンを選んだ意味」が消える)。
+   ここでテーマごとに、そのテーマのアクセントカラーを薄く効かせたグラデーションへ上書きする。
+   [data-theme="X"][data-mode="dark"]は属性セレクタ2つ分で:root[data-mode="dark"]と同じ
+   特異度のため、ソース順でこちらを後に置くことで確実に上書きされる(system追従側も同様に
+   @media内で:not([data-mode="light"])と組み合わせている)。 */
+[data-theme="cyan"][data-mode="dark"] {
+  --gradient-hero: rgba(8, 145, 178, 0.14);
+  --gradient-hero-border: rgba(8, 145, 178, 0.4);
+  --gradient-sidebar: #1c1a14;
+}
+[data-theme="gold"][data-mode="dark"] {
+  --gradient-hero: rgba(201, 150, 47, 0.14);
+  --gradient-hero-border: rgba(201, 150, 47, 0.4);
+  --gradient-sidebar: #1c1a14;
+}
+[data-theme="green"][data-mode="dark"] {
+  --gradient-hero: rgba(107, 143, 102, 0.14);
+  --gradient-hero-border: rgba(107, 143, 102, 0.4);
+  --gradient-sidebar: #1c1a14;
+}
+[data-theme="orange"][data-mode="dark"] {
+  --gradient-hero: rgba(238, 90, 43, 0.14);
+  --gradient-hero-border: rgba(238, 90, 43, 0.4);
+  --gradient-sidebar: #1c1a14;
+}
+[data-theme="yellow"][data-mode="dark"] {
+  --gradient-hero: rgba(224, 178, 60, 0.14);
+  --gradient-hero-border: rgba(224, 178, 60, 0.4);
+  --gradient-sidebar: #1c1a14;
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="cyan"]:not([data-mode="light"]) {
+    --gradient-hero: rgba(8, 145, 178, 0.14);
+    --gradient-hero-border: rgba(8, 145, 178, 0.4);
+    --gradient-sidebar: #1c1a14;
+  }
+  [data-theme="gold"]:not([data-mode="light"]) {
+    --gradient-hero: rgba(201, 150, 47, 0.14);
+    --gradient-hero-border: rgba(201, 150, 47, 0.4);
+    --gradient-sidebar: #1c1a14;
+  }
+  [data-theme="green"]:not([data-mode="light"]) {
+    --gradient-hero: rgba(107, 143, 102, 0.14);
+    --gradient-hero-border: rgba(107, 143, 102, 0.4);
+    --gradient-sidebar: #1c1a14;
+  }
+  [data-theme="orange"]:not([data-mode="light"]) {
+    --gradient-hero: rgba(238, 90, 43, 0.14);
+    --gradient-hero-border: rgba(238, 90, 43, 0.4);
+    --gradient-sidebar: #1c1a14;
+  }
+  [data-theme="yellow"]:not([data-mode="light"]) {
+    --gradient-hero: rgba(224, 178, 60, 0.14);
+    --gradient-hero-border: rgba(224, 178, 60, 0.4);
+    --gradient-sidebar: #1c1a14;
+  }
+}
+
+/* サイドバーの非アクティブなナビタイル(.nav-tile、page.tsx参照)は、ライトモード前提で
+   border-white/50 bg-white/40 backdrop-blur-mdという「背景を薄いガラス越しに見せる」実装に
+   なっている。最初はダークモードでも同じ考え方(白の重ね+ぼかし)で対応したが、
+   「ダークモードはガラス質感をやめてフラットな濃いダークにしたい」という方針に変わったため、
+   ダークモードの時だけ不透明な単色サーフェス(--card-bgと同系)に置き換え、backdrop-filterも
+   noneにして打ち消す(ライトモードの見た目はTailwindクラスのまま変えない)。 */
+[data-mode="dark"] .nav-tile {
+  background: #211f18;
+  border-color: #332f24;
+  backdrop-filter: none;
+}
+[data-mode="dark"] .nav-tile:hover {
+  background: #2a271e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode="light"]) .nav-tile {
+    background: #211f18;
+    border-color: #332f24;
+    backdrop-filter: none;
+  }
+  :root:not([data-mode="light"]) .nav-tile:hover {
+    background: #2a271e;
+  }
+}
+
+/* 選択中タブ(.nav-active)も同じ理由でダークモードは不透明化する。color-mix()でaccentを
+   不透明なサーフェス色に混ぜ込むことで、5色どのアクセントテーマでも(テーマ別の分岐を
+   増やさずに)「そのテーマの色みを帯びた不透明な濃いタイル」になる。 */
+[data-mode="dark"] .nav-active {
+  background: color-mix(in srgb, var(--accent) 22%, #211f18);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  backdrop-filter: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode="light"]) .nav-active {
+    background: color-mix(in srgb, var(--accent) 22%, #211f18);
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    backdrop-filter: none;
+  }
+}
+
+/* --gradient-hero・--gradient-sidebarを単色化しても、サイドバー・ダッシュボードの
+   「こんばんは」カード・市場カード・ニュースティッカーなどには、それとは別に
+   bg-[var(--glow)]やbg-[var(--accent)]をblur()した「にじみ光」の装飾divが個別に
+   置かれていた(.glow-blobクラス、各コンポーネント参照)。これも見た目としては
+   「グラデーションっぽい」ため、ダークモードでは丸ごと非表示にする(ライトモードは
+   そのまま残す)。 */
+[data-mode="dark"] .glow-blob {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode="light"]) .glow-blob {
+    display: none;
+  }
+}
+
+/* グリーン: 「Tableau de bord」風。ガラス質感をやめて版面をフラットに、見出しは上品な明朝。 */
+[data-theme="green"] {
+  --background: #f1efe6;
+  --accent: #6b8f66;
+  --accent-hover: #557350;
+  --accent-strong: #3d5540;
+  --hero: #3d5540;
+  --glow: #a9c19f;
+  --card-radius: 14px;
+  --card-bg: #ffffff;
+  --card-border: #e3ddc8;
+  --card-blur: 0px;
+  --card-shadow: 0 1px 2px rgba(30, 40, 30, 0.04), 0 8px 20px -10px rgba(30, 40, 30, 0.12);
+  --nav-radius: 10px;
+  --gradient-hero: linear-gradient(135deg, #d8e6d3, #f8faf6);
+  --gradient-hero-border: rgba(107, 143, 102, 0.35);
+  --gradient-sidebar: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(241, 239, 230, 0.42) 55%, rgba(169, 193, 159, 0.34) 100%);
+  --gradient-dashboard-hero: linear-gradient(135deg, rgba(241, 239, 230, 0.55) 0%, rgba(169, 193, 159, 0.42) 55%, rgba(61, 85, 64, 0.28) 100%);
+  --tone-1: #3d5540;
+  --tone-2: #6b8f66;
+  --tone-3: #97b391;
+  --tone-4: #cfe0ca;
+}
+
+/* オレンジ: 「Finexy」風。太いゴシック見出し+くっきりした白カード+強めの丸みと影。 */
+[data-theme="orange"] {
+  --background: #ececec;
+  --accent: #ee5a2b;
+  --accent-hover: #d54a1f;
+  --accent-strong: #b8441a;
+  --hero: #ee5a2b;
+  --glow: #f2a37a;
+  --card-radius: 22px;
+  --card-bg: #ffffff;
+  --card-border: #e2e2e2;
+  --card-blur: 0px;
+  --card-shadow: 0 2px 4px rgba(20, 20, 20, 0.05), 0 14px 28px -10px rgba(20, 20, 20, 0.14);
+  --nav-radius: 18px;
+  --gradient-hero: linear-gradient(135deg, #fbd7c4, #fef7f2);
+  --gradient-hero-border: rgba(238, 90, 43, 0.35);
+  --gradient-sidebar: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(236, 236, 236, 0.42) 55%, rgba(242, 163, 122, 0.34) 100%);
+  --gradient-dashboard-hero: linear-gradient(135deg, rgba(236, 236, 236, 0.55) 0%, rgba(242, 163, 122, 0.42) 55%, rgba(184, 68, 26, 0.28) 100%);
+  --tone-1: #b8441a;
+  --tone-2: #ee5a2b;
+  --tone-3: #f38a5f;
+  --tone-4: #fbd0bb;
+}
+
+/* イエロー: 「Homies Lab」風。丸ゴシックの柔らかい見出し+パステル寄りの半透明カード。 */
+[data-theme="yellow"] {
+  --background: #f7f1de;
+  --accent: #e0b23c;
+  --accent-hover: #c79a2e;
+  --accent-strong: #a67e1f;
+  --hero: #e0b23c;
+  --glow: #f2d98a;
+  --card-radius: 20px;
+  --card-bg: rgba(255, 255, 255, 0.65);
+  --card-border: #ecdfc0;
+  --card-blur: 6px;
+  --card-shadow: 0 1px 2px rgba(60, 50, 20, 0.04), 0 10px 22px -10px rgba(60, 50, 20, 0.1);
+  --nav-radius: 20px;
+  --gradient-hero: linear-gradient(135deg, #f7e6b8, #fefaf0);
+  --gradient-hero-border: rgba(224, 178, 60, 0.35);
+  --gradient-sidebar: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(247, 241, 222, 0.42) 55%, rgba(242, 217, 138, 0.34) 100%);
+  --gradient-dashboard-hero: linear-gradient(135deg, rgba(247, 241, 222, 0.55) 0%, rgba(242, 217, 138, 0.42) 55%, rgba(166, 126, 31, 0.28) 100%);
+  --tone-1: #a67e1f;
+  --tone-2: #e0b23c;
+  --tone-3: #ecc873;
+  --tone-4: #f7e6b8;
+}
+
+/* シアン: 「Tableau de bord」の単色トーンパターン(T3案)をベースに固めた新テーマ。
+   webapp的なモダンさを重視し、ガラス質感を弱めてフラットな白カード寄りにする。
+   このアプリのデフォルトテーマ。 */
+[data-theme="cyan"] {
+  --background: #eef3f5;
+  --accent: #0891b2;
+  --accent-hover: #077288;
+  --accent-strong: #066a85;
+  --hero: #066a85;
+  --glow: #4fb3cf;
+  --card-radius: 12px;
+  --card-bg: rgba(255, 255, 255, 0.78);
+  --card-border: #e1e8ea;
+  --card-blur: 12px;
+  --card-shadow: 0 1px 2px rgba(15, 35, 40, 0.05), 0 10px 22px -10px rgba(15, 35, 40, 0.12);
+  --nav-radius: 12px;
+  --gradient-hero: linear-gradient(135deg, #d5ecf2, #fbfdfd);
+  --gradient-hero-border: rgba(8, 145, 178, 0.35);
+  --gradient-sidebar: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(238, 243, 245, 0.42) 55%, rgba(79, 179, 207, 0.3) 100%);
+  --gradient-dashboard-hero: linear-gradient(135deg, rgba(238, 243, 245, 0.55) 0%, rgba(79, 179, 207, 0.32) 55%, rgba(6, 106, 133, 0.24) 100%);
+  --tone-1: #066a85;
+  --tone-2: #0891b2;
+  --tone-3: #4fb3cf;
+  --tone-4: #c3e6f0;
 }
 
 @theme inline {
@@ -11,10 +350,6 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
-
-/* このアプリはガラス×インフォグラフィック調の1テーマのみを想定しており、
-   OS側のダークモード設定に追従させない(背景が黒くなり短いページで
-   下部が黒抜けする問題があったため)。 */
 
 body {
   background: var(--background);

@@ -135,18 +135,28 @@ export function managerMajorityThreshold(): number {
   return Math.floor(BASE_PERSONA_DEFS.length / 2) + 1;
 }
 
-// managerの候補選定: 他の運用者のうち過半数(ceil((N+1)/2))が「買いたい」と判定した銘柄だけを、
-// 支持者数の多い順(同数なら総合評価順)に返す。3人中2人以上、4人中3人以上、のように
-// 素の運用者の人数が変わっても「過半数」の意味を保つ。
+// 各運用者が「自分の一押し」とみなす上位件数。managerCandidatesの支持判定はこの中からだけ選ぶ
+// (単に合格ラインを超えているだけでなく、その人自身のランキングでも上位に入っている必要がある)。
+const MANAGER_TOP_N = 15;
+
+// managerの候補選定: 他の運用者のうち過半数(ceil((N+1)/2))が、それぞれの上位MANAGER_TOP_N件の
+// 中でこの銘柄を推している場合だけを、支持者数の多い順(同数なら総合評価順)に返す。
+// 3人中2人以上、4人中3人以上、のように素の運用者の人数が変わっても「過半数」の意味を保つ。
 export function managerCandidates(
   pool: DailyScreenEntry[],
   held: Set<string>
 ): { entry: DailyScreenEntry; supporters: BasePersonaId[] }[] {
   const majorityThreshold = managerMajorityThreshold();
+  const topTickersByPersona = new Map<BasePersonaId, Set<string>>(
+    BASE_PERSONA_DEFS.map((d) => {
+      const id = d.id as BasePersonaId;
+      return [id, new Set(candidatesFor(id, pool, held).slice(0, MANAGER_TOP_N).map((e) => e.ticker))];
+    })
+  );
   const notHeld = pool.filter((e) => !held.has(e.ticker) && e.price != null && e.price > 0 && e.currency);
   const withSupport = notHeld.map((e) => ({
     entry: e,
-    supporters: BASE_PERSONA_DEFS.map((d) => d.id as BasePersonaId).filter((id) => passesFilter(id, e)),
+    supporters: BASE_PERSONA_DEFS.map((d) => d.id as BasePersonaId).filter((id) => topTickersByPersona.get(id)!.has(e.ticker)),
   }));
   return withSupport
     .filter(({ supporters }) => supporters.length >= majorityThreshold)

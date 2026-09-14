@@ -60,6 +60,34 @@ export async function fetchRawPriceSeries(ticker: string): Promise<RawPriceSerie
   return { dates, closes };
 }
 
+// 5年バックテスト用: 200日移動平均のウォームアップ分も含めて長めに取得したいので、
+// range指定を呼び出し元から選べるようにする(既存呼び出しは全て3yのまま、デフォルト値は変えない)。
+export async function fetchRawPriceSeriesRanged(ticker: string, range: "3y" | "10y"): Promise<RawPriceSeries> {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
+    ticker
+  )}?range=${range}&interval=1d`;
+  const res = await fetch(url, { headers: HEADERS, cache: "no-store", signal: AbortSignal.timeout(20000) });
+  if (!res.ok) return { dates: [], closes: [] };
+
+  const json = await res.json();
+  const result = json?.chart?.result?.[0];
+  if (!result) return { dates: [], closes: [] };
+
+  const timestamps: number[] = result.timestamp ?? [];
+  const rawCloses: (number | null)[] = result.indicators?.quote?.[0]?.close ?? [];
+
+  const dates: string[] = [];
+  const closes: number[] = [];
+  timestamps.forEach((ts, i) => {
+    const close = rawCloses[i];
+    if (close == null) return;
+    dates.push(new Date(ts * 1000).toISOString().slice(0, 10));
+    closes.push(close);
+  });
+
+  return { dates, closes };
+}
+
 // スクリーニング結果カードのミニチャート用の軽量な終値取得(直近3ヶ月分のみ)。
 export async function fetchSparkline(ticker: string, days = 60): Promise<number[]> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(

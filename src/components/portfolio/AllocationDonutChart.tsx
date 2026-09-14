@@ -44,7 +44,7 @@ export function AllocationDonutChart({
   const positive = segments.filter((s) => s.value > 0);
 
   if (total <= 0 || positive.length === 0) {
-    return <div className="flex h-[120px] items-center justify-center text-[11px] text-[#a39d8c]">データがありません</div>;
+    return <div className="flex h-[120px] items-center justify-center text-[11px] text-[var(--text-muted)]">データがありません</div>;
   }
 
   // 各扇形の開始位置(度)を、直前までの割合の累計として先に求めておく(map内でのミューテーションを避ける)。
@@ -67,7 +67,7 @@ export function AllocationDonutChart({
           <path key={a.label} d={a.path} fill={a.color} />
         ))}
         {centerLabel && (
-          <text x={CENTER} y={CENTER} textAnchor="middle" dominantBaseline="central" fontSize="21" fontWeight="700" fill="#1c1b18">
+          <text x={CENTER} y={CENTER} textAnchor="middle" dominantBaseline="central" fontSize="21" fontWeight="700" fill="var(--foreground)">
             {centerLabel}
           </text>
         )}
@@ -76,8 +76,8 @@ export function AllocationDonutChart({
         {arcs.map((a) => (
           <div key={a.label} className="flex items-center gap-1.5 text-[12.5px]">
             <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: a.color }} />
-            <span className="min-w-0 flex-1 truncate text-[#1c1b18]">{a.label}</span>
-            <span className="shrink-0 tabular-nums text-[#6c6656]">{a.pct.toFixed(0)}%</span>
+            <span className="min-w-0 flex-1 truncate text-[var(--foreground)]">{a.label}</span>
+            <span className="shrink-0 tabular-nums text-[var(--text-secondary)]">{a.pct.toFixed(0)}%</span>
           </div>
         ))}
       </div>

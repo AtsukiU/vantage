@@ -26,9 +26,9 @@ function QuoteChip({ quote }: { quote: Quote }) {
   const arrow = up ? "▲" : down ? "▼" : "―";
 
   return (
-    <span className="mx-1 inline-flex shrink-0 items-baseline gap-1.5 whitespace-nowrap rounded-full bg-[#f0efe6] px-3 py-1.5 text-[13px]">
-      <span className="font-semibold text-[#1c1b18]">{quote.label}</span>
-      <span className="tabular-nums text-[#1c1b18]">{formatPrice(quote)}</span>
+    <span className="mx-1 inline-flex shrink-0 items-baseline gap-1.5 whitespace-nowrap rounded-full bg-[var(--fill-pill)] px-3 py-1.5 text-[13px]">
+      <span className="font-semibold text-[var(--foreground)]">{quote.label}</span>
+      <span className="tabular-nums text-[var(--foreground)]">{formatPrice(quote)}</span>
       <span className="tabular-nums font-semibold" style={{ color }}>
         {arrow} {formatChangePercent(quote)}
       </span>
@@ -65,12 +65,12 @@ export function IndexTicker() {
 
   if (quotes.length === 0) {
     return (
-      <div className="h-11 shrink-0 border-b border-[#e2dfd2] bg-white/70" />
+      <div className="h-11 shrink-0 border-b border-[var(--border-subtle)] bg-white/70" />
     );
   }
 
   return (
-    <div className="group h-11 shrink-0 overflow-hidden border-b border-[#e2dfd2] bg-white/70 backdrop-blur">
+    <div className="group h-11 shrink-0 overflow-hidden border-b border-[var(--border-subtle)] bg-white/70 backdrop-blur">
       <div className="flex h-full animate-[ticker_35s_linear_infinite] items-center group-hover:[animation-play-state:paused]">
         {[0, 1].map((copy) => (
           <div key={copy} className="flex shrink-0 items-center">

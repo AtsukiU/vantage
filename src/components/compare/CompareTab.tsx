@@ -105,22 +105,22 @@ export function CompareTab({
   const readyCount = readyMetrics.filter(Boolean).length;
 
   return (
-    <section hidden={hidden}>
-      <GlassPageShell maxWidth="max-w-5xl">
+    <section hidden={hidden} className="h-full">
+      <GlassPageShell>
         <div className={`${GLASS_CARD} mb-4`}>
-          <h2 className="mb-3 text-[13px] font-extrabold text-[#1c1b18]">
-            銘柄比較 <span className="font-mono font-normal text-[#6c6656]">(最大{MAX_SLOTS}銘柄)</span>
+          <h2 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">
+            銘柄比較 <span className="font-mono font-normal text-[var(--text-secondary)]">(最大{MAX_SLOTS}銘柄)</span>
           </h2>
           <div className="grid gap-3 sm:grid-cols-3">
             {slots.map((slot, i) => (
               <div key={i}>
                 {slot ? (
-                  <div className="flex items-center justify-between rounded-lg border border-[#e2dfd2] bg-[#f7f6f1] px-3 py-2">
+                  <div className="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--fill-subtle)] px-3 py-2">
                     <div className="min-w-0">
-                      <div className="truncate text-[12.5px] font-semibold text-[#1c1b18]">{slot.name}</div>
-                      <div className="font-mono text-[10.5px] text-[#6c6656]">{slot.symbol}</div>
+                      <div className="truncate text-[12.5px] font-semibold text-[var(--foreground)]">{slot.name}</div>
+                      <div className="font-mono text-[10.5px] text-[var(--text-secondary)]">{slot.symbol}</div>
                     </div>
-                    <button onClick={() => setSlot(i, null)} className="ml-2 shrink-0 text-[#a39d8c] hover:text-red-600">
+                    <button onClick={() => setSlot(i, null)} className="ml-2 shrink-0 text-[var(--text-muted)] hover:text-red-600">
                       ✕
                     </button>
                   </div>
@@ -132,7 +132,7 @@ export function CompareTab({
             {slots.length < MAX_SLOTS && (
               <button
                 onClick={addSlot}
-                className="rounded-lg border border-dashed border-[#e2dfd2] px-3 py-2 text-[12.5px] text-[#6c6656] hover:border-[#c9962f]/40 hover:text-[#c9962f]"
+                className="rounded-lg border border-dashed border-[var(--border-subtle)] px-3 py-2 text-[12.5px] text-[var(--text-secondary)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
               >
                 + 比較銘柄を追加
               </button>
@@ -141,14 +141,14 @@ export function CompareTab({
         </div>
 
         {readyCount < 2 ? (
-          <div className="rounded-[18px] border border-dashed border-[#e2dfd2] bg-white/60 p-10 text-center text-[13px] text-[#6c6656]">
+          <div className="rounded-[18px] border border-dashed border-[var(--border-subtle)] bg-white/60 p-10 text-center text-[13px] text-[var(--text-secondary)]">
             {loading ? "取得中…" : "2銘柄以上を選択すると比較できます"}
           </div>
         ) : (
           <div className={`${GLASS_CARD} overflow-x-auto p-0`}>
             <table className="w-full min-w-[480px] text-[13px]">
               <thead>
-                <tr className="border-b border-[#e2dfd2] text-left text-[11px] text-[#6c6656]">
+                <tr className="border-b border-[var(--border-subtle)] text-left text-[11px] text-[var(--text-secondary)]">
                   <th className="px-4 py-2.5 font-medium">指標</th>
                   {slots.map((slot, i) => {
                     const m = readyMetrics[i];
@@ -157,11 +157,11 @@ export function CompareTab({
                       <th key={slot.symbol} className="px-3 py-2.5 text-right font-medium">
                         <button
                           onClick={() => onOpenDetail(slot.symbol, m.name ?? slot.symbol)}
-                          className="text-[#1c1b18] hover:text-[#c9962f] hover:underline"
+                          className="text-[var(--foreground)] hover:text-[var(--accent)] hover:underline"
                         >
                           {m.name ?? slot.symbol}
                         </button>
-                        <div className="font-mono font-normal text-[#a39d8c]">{slot.symbol}</div>
+                        <div className="font-mono font-normal text-[var(--text-muted)]">{slot.symbol}</div>
                       </th>
                     );
                   })}
@@ -179,8 +179,8 @@ export function CompareTab({
                       : null;
 
                   return (
-                    <tr key={row.key} className="border-b border-[#efece2] last:border-0">
-                      <td className="px-4 py-2.5 text-[#6c6656]">{row.label}</td>
+                    <tr key={row.key} className="border-b border-[var(--border-faint)] last:border-0">
+                      <td className="px-4 py-2.5 text-[var(--text-secondary)]">{row.label}</td>
                       {slots.map((slot, i) => {
                         const m = readyMetrics[i];
                         if (!slot || !m) return null;
@@ -189,7 +189,7 @@ export function CompareTab({
                           <td
                             key={slot.symbol}
                             className="px-3 py-2.5 text-right font-mono font-semibold"
-                            style={{ color: v != null && best != null && v === best ? GLASS_GOOD : "#1c1b18" }}
+                            style={{ color: v != null && best != null && v === best ? GLASS_GOOD : "var(--foreground)" }}
                           >
                             {v != null ? row.format(v, m) : "—"}
                           </td>
@@ -202,7 +202,7 @@ export function CompareTab({
             </table>
           </div>
         )}
-        <p className="mt-3 text-xs text-[#a39d8c]">
+        <p className="mt-3 text-xs text-[var(--text-muted)]">
           緑色は比較銘柄の中で最も良い値であることを示します(値が低いほど良い指標は最小値、高いほど良い指標は最大値)。
         </p>
       </GlassPageShell>

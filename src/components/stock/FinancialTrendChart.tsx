@@ -44,14 +44,14 @@ function TrendRow({
   return (
     <div className="mb-4 last:mb-0">
       <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <span className="text-xs font-bold text-[#1c1b18]">
-          {label} <span className="font-mono font-normal text-[#6c6656]">{formatAmount(latest, currency)}</span>
+        <span className="text-xs font-bold text-[var(--foreground)]">
+          {label} <span className="font-mono font-normal text-[var(--text-secondary)]">{formatAmount(latest, currency)}</span>
         </span>
         <span className="flex items-center gap-2 text-[11px]">
           {streak >= 2 && (
             <span
               className="rounded-full px-2 py-0.5 font-bold"
-              style={{ background: "rgba(47,158,92,.12)", color: "#2f9e5c" }}
+              style={{ background: "rgba(47,158,92,.12)", color: "var(--status-good)" }}
             >
               {streak}期連続{suffix}
             </span>
@@ -59,7 +59,7 @@ function TrendRow({
           {yoy != null && (
             <span
               className="tabular-nums font-semibold"
-              style={{ color: yoy >= 0 ? "#c0392b" : "#2f6fb0" }}
+              style={{ color: yoy >= 0 ? "var(--price-up)" : "var(--price-down)" }}
             >
               前期比 {yoy >= 0 ? "+" : ""}
               {yoy.toFixed(1)}%
@@ -71,7 +71,7 @@ function TrendRow({
         {values.map((v, i) => {
           const heightPct = v == null ? 0 : Math.max(6, (Math.abs(v) / max) * 100);
           const grew = i > 0 && values[i - 1] != null && v != null ? v >= (values[i - 1] as number) : null;
-          const barColor = v == null ? "#e2dfd2" : grew === false ? "#2f6fb0" : "#c9962f";
+          const barColor = v == null ? "var(--border-subtle)" : grew === false ? "var(--price-down)" : "var(--accent)";
           return (
             <div key={years[i] + i} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
               <div
@@ -79,7 +79,7 @@ function TrendRow({
                 style={{ height: `${heightPct}%`, background: barColor }}
                 title={`${years[i]}: ${formatAmount(v, currency)}`}
               />
-              <span className="text-[9px] text-[#a39d8c]">{years[i]}</span>
+              <span className="text-[9px] text-[var(--text-muted)]">{years[i]}</span>
             </div>
           );
         })}
@@ -96,7 +96,7 @@ export function FinancialTrendChart({
   currency: string | null;
 }) {
   if (data.length === 0) {
-    return <div className="text-[12.5px] text-[#6c6656]">業績データを取得できませんでした</div>;
+    return <div className="text-[12.5px] text-[var(--text-secondary)]">業績データを取得できませんでした</div>;
   }
 
   const years = data.map((d) => d.fiscalYearEnd.slice(0, 4) + "期");

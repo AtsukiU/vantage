@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { getJson, setJson, isKvConfigured } from "./kv";
 import { brokerCommissionJpy } from "./brokerFees";
 import { getDailyScreenState, type DailyScreenEntry, type ScreenMarket } from "./dailyScreenStore";
 import { computeOverallScore } from "./dailyPickOverall";
@@ -52,8 +53,16 @@ function normalize(parsed: PersonasFile | null): PersonasFile {
   return parsed;
 }
 
+const KV_KEY = "personas";
+
+// Upstash Redisが設定されていればそちらを使い、未設定時は従来通りローカルディスクへ
+// フォールバックする(dailyScreenStore.tsと同じ考え方)。
 async function loadFile(): Promise<PersonasFile> {
   try {
+    if (isKvConfigured()) {
+      const parsed = await getJson<PersonasFile>(KV_KEY);
+      return normalize(parsed);
+    }
     const raw = fs.readFileSync(FILE_PATH, "utf-8");
     return normalize(JSON.parse(raw) as PersonasFile);
   } catch {
@@ -68,6 +77,10 @@ async function saveFile(state: PersonasFile): Promise<void> {
     if (acc.trades.length > 200) acc.trades = acc.trades.slice(-200);
   }
   try {
+    if (isKvConfigured()) {
+      await setJson(KV_KEY, state);
+      return;
+    }
     fs.mkdirSync(CACHE_DIR, { recursive: true });
     fs.writeFileSync(FILE_PATH, JSON.stringify(state));
   } catch (e) {

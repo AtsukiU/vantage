@@ -10,6 +10,7 @@ import { fetchMetricsBatch } from "@/lib/fetchMetricsBatch";
 import { computePortfolioAdvice, type PersonaAdvice } from "@/lib/portfolioAdvice";
 import type { FilterExplanation } from "@/lib/personaRules";
 import { FxOutlookCard } from "./FxOutlookCard";
+import { TrendBacktestCard } from "./TrendBacktestCard";
 import { Users, TrendingDown, TrendingUp, ShieldCheck } from "lucide-react";
 
 // 売り/買い推奨にマウスホバーした時だけ出す、判定条件の内訳ツールチップ。
@@ -17,10 +18,10 @@ import { Users, TrendingDown, TrendingUp, ShieldCheck } from "lucide-react";
 function DetailTooltip({ detail }: { detail: FilterExplanation[] }) {
   if (detail.length === 0) return null;
   return (
-    <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-1.5 hidden w-60 rounded-lg bg-[#1c1b18] p-2.5 text-[10px] shadow-lg group-hover:block">
+    <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-1.5 hidden w-60 rounded-lg bg-[#1c1b18] p-2.5 text-[10.5px] shadow-lg group-hover:block">
       {detail.map((d) => (
         <div key={d.label} className="flex items-center justify-between gap-2 py-0.5">
-          <span className="flex items-center gap-1" style={{ color: d.pass ? "#7dd3ae" : "#e0a8a3" }}>
+          <span className="flex items-center gap-1" style={{ color: d.pass ? "var(--status-good-soft)" : "var(--status-bad-soft)" }}>
             {d.pass ? "✓" : "✕"} {d.label}
           </span>
           <span className="text-right text-white/70">{d.value}</span>
@@ -38,10 +39,10 @@ function DetailTooltip({ detail }: { detail: FilterExplanation[] }) {
 // 残している(実際の売買は一切行わない)。
 
 const PERSONA_COLOR: Record<PersonaId, string> = {
-  trend: "#c9962f",
-  committee: "#cf9a4c",
+  trend: "var(--accent)",
+  committee: "var(--accent-strong)",
   value: "#6f5fa3",
-  risk: "#2f6fb0",
+  risk: "var(--price-down)",
   income: "#a9843b",
   event: "#8f6ea3",
   manager: "#1c3a5e",
@@ -119,33 +120,29 @@ export function PersonasTab({
   const scansMissing = scanReady && (!scanReady.jp || !scanReady.us);
 
   return (
-    <section hidden={hidden}>
-      <GlassPageShell maxWidth="max-w-5xl">
+    <section hidden={hidden} className="h-full">
+      <GlassPageShell>
         <FxOutlookCard />
         <div className={`${GLASS_CARD} mb-4`}>
           <div className="flex items-center gap-2">
-            <Users size={16} strokeWidth={2.25} className="text-[#c9962f]" />
-            <h2 className="text-[13px] font-extrabold text-[#1c1b18]">運用アドバイザー</h2>
+            <Users size={16} strokeWidth={2.25} className="text-[var(--accent)]" />
+            <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">運用アドバイザー</h2>
           </div>
-          <p className="mt-1 text-xs text-[#6c6656]">
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">
             7人の仮想アドバイザー(トレンド/総合スコア/バリュー/リスク管理/インカム/イベント警戒/統括マネージャー)が、あなたの実際の保有銘柄(ポートフォリオタブ)と「本日の注目銘柄」を見て、
-            <span className="font-semibold text-[#1c1b18]">売った方がいい銘柄・新規の買い候補と推奨株数</span>を助言します。架空資金の売買は行わず、実際の保有・評価額を基準に計算します。
+            <span className="font-semibold text-[var(--foreground)]">売った方がいい銘柄・新規の買い候補と推奨株数</span>を助言します。架空資金の売買は行わず、実際の保有・評価額を基準に計算します。
           </p>
-          <p className="mt-1 text-[10.5px] text-[#a39d8c]">
-            最終的な発注判断はご自身で行ってください。投資助言ではありません(このアプリ自体は実売買を行いません)。
-          </p>
-
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button onClick={loadAdvice} disabled={loading} className={GLASS_BTN_PRIMARY}>
               {loading ? "判断を実行中…" : "判断を実行する"}
             </button>
             {portfolioValueJpy > 0 && (
-              <span className="text-[10.5px] text-[#a39d8c]">保有銘柄{holdingCount}件・評価額(円換算) {fmtYen(portfolioValueJpy)}</span>
+              <span className="text-[10.5px] text-[var(--text-muted)]">保有銘柄{holdingCount}件・評価額(円換算) {fmtYen(portfolioValueJpy)}</span>
             )}
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-[#f7f6f1] px-3 py-2">
-            <span className="text-[11px] font-semibold text-[#6c6656]">手元資金(円換算):</span>
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-[var(--fill-subtle)] px-3 py-2">
+            <span className="text-[11px] font-semibold text-[var(--text-secondary)]">手元資金(円換算):</span>
             {editingCash ? (
               <>
                 <input
@@ -154,40 +151,40 @@ export function PersonasTab({
                   value={cashInput}
                   onChange={(e) => setCashInput(e.target.value)}
                   placeholder="1000000"
-                  className="w-32 rounded-md border border-[#e2dfd2] px-2 py-1 text-[12px]"
+                  className="w-32 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-[12.5px]"
                   autoFocus
                 />
-                <button onClick={handleSaveCash} className="rounded-full bg-[#c9962f] px-2.5 py-1 text-[11px] font-semibold text-white">
+                <button onClick={handleSaveCash} className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-[11px] font-semibold text-white">
                   保存
                 </button>
-                <button onClick={() => setEditingCash(false)} className="text-[11px] text-[#a39d8c] hover:text-[#1c1b18]">
+                <button onClick={() => setEditingCash(false)} className="text-[11px] text-[var(--text-muted)] hover:text-[var(--foreground)]">
                   キャンセル
                 </button>
               </>
             ) : (
               <>
-                <span className="text-[13px] font-bold text-[#1c1b18]">{fmtYen(cashJpy)}</span>
+                <span className="text-[13px] font-bold text-[var(--foreground)]">{fmtYen(cashJpy)}</span>
                 <button
                   onClick={() => {
                     setCashInput(String(cashJpy || ""));
                     setEditingCash(true);
                   }}
-                  className="text-[11px] text-[#c9962f] hover:underline"
+                  className="text-[11px] text-[var(--accent)] hover:underline"
                 >
                   編集
                 </button>
               </>
             )}
-            <span className="text-[10px] text-[#a39d8c]">— 買い推奨のうち、これで今すぐ買える銘柄は明るい色、買えない銘柄は薄く表示されます</span>
+            <span className="text-[10.5px] text-[var(--text-muted)]">— 買い推奨のうち、これで今すぐ買える銘柄は明るい色、買えない銘柄は薄く表示されます</span>
           </div>
 
           {scansMissing && (
-            <div className="mt-3 rounded-lg bg-[#f0efe6] px-3 py-2 text-[11.5px] text-[#6c6656]">
+            <div className="mt-3 rounded-lg bg-[var(--fill-pill)] px-3 py-2 text-[11px] text-[var(--text-secondary)]">
               「本日の注目銘柄」タブで{!scanReady?.jp && !scanReady?.us ? "日本株・米国株" : !scanReady?.jp ? "日本株" : "米国株"}のスキャンを完了させると、その銘柄も判断対象に含められます(未完了の市場は今回の判断から除外されています)。
             </div>
           )}
           {advice && holdingCount === 0 && (
-            <div className="mt-3 rounded-lg bg-[#f0efe6] px-3 py-2 text-[11.5px] text-[#6c6656]">
+            <div className="mt-3 rounded-lg bg-[var(--fill-pill)] px-3 py-2 text-[11px] text-[var(--text-secondary)]">
               「ポートフォリオ」タブに保有銘柄を登録すると、売り推奨・買い推奨の推奨株数(評価額に応じたサイジング)が計算されます。
             </div>
           )}
@@ -201,8 +198,12 @@ export function PersonasTab({
               return (
                 <div
                   key={id}
-                  className={GLASS_CARD}
-                  style={def.isManager ? { borderColor: PERSONA_COLOR.manager, borderWidth: 1.5, background: "rgba(28,58,94,0.04)" } : undefined}
+                  className={def.isManager ? `${GLASS_CARD} lg:col-span-2` : GLASS_CARD}
+                  style={
+                    def.isManager
+                      ? { background: "var(--gradient-hero)", border: "1px solid var(--gradient-hero-border)" }
+                      : undefined
+                  }
                 >
                   <div className="flex items-center justify-between gap-1.5">
                     <div className="flex items-center gap-1.5">
@@ -211,33 +212,57 @@ export function PersonasTab({
                       ) : (
                         <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: PERSONA_COLOR[id] }} />
                       )}
-                      <h3 className="text-[12px] font-bold text-[#1c1b18]">{def.label}</h3>
+                      <h3 className="text-[12.5px] font-bold text-[var(--foreground)]">{def.label}</h3>
                     </div>
                     {def.isManager && (
-                      <span className="shrink-0 rounded-full bg-[#1c3a5e] px-2 py-0.5 text-[9px] font-bold text-white">最終決定</span>
+                      <span className="shrink-0 rounded-full bg-[var(--accent)] px-2 py-0.5 text-[9px] font-bold text-white">最終決定</span>
                     )}
                   </div>
-                  <p className="mt-1 text-[10.5px] leading-relaxed text-[#a39d8c]">{def.description}</p>
+                  <p className="mt-1 text-[10.5px] leading-relaxed text-[var(--text-muted)]">{def.description}</p>
 
                   <div className="mt-3">
-                    <div className="mb-1 flex items-center gap-1 text-[10.5px] font-bold text-[#c0392b]">
-                      <TrendingDown size={12} strokeWidth={2.5} />
-                      売り推奨
+                    <div className="mb-1 flex items-center gap-1 text-[10.5px] font-bold text-[var(--accent)]">
+                      <TrendingUp size={12} strokeWidth={2.5} />
+                      買い推奨
                     </div>
-                    {a.sells.length === 0 ? (
-                      <p className="text-[11px] text-[#a39d8c]">なし</p>
+                    {a.buys.length === 0 ? (
+                      <p className="text-[11px] text-[var(--text-muted)]">なし</p>
                     ) : (
-                      <ul className="space-y-1">
-                        {a.sells.map((s) => (
-                          <li key={s.ticker} className="group relative flex items-center justify-between rounded-lg bg-[#fbeae8] px-2 py-1 text-[11px]">
-                            <button onClick={() => onOpenDetail(s.ticker, s.name)} className="font-semibold text-[#1c1b18] hover:underline">
-                              {s.name}
-                            </button>
-                            <span className="text-[10px] text-[#a3665f]">
-                              {s.reason}
-                              {s.estimatedFeeJpy > 0 && ` (手数料目安 ${fmtYen(s.estimatedFeeJpy)})`}
-                            </span>
-                            <DetailTooltip detail={s.detail} />
+                      <ul className="space-y-1.5">
+                        {a.buys.map((b) => (
+                          <li
+                            key={b.ticker}
+                            className={
+                              !b.affordableNow
+                                ? "group relative rounded-[16px] border border-[var(--card-border)] bg-[var(--card-bg)] px-2.5 py-1.5 text-[11px] opacity-60 backdrop-blur-[var(--card-blur)]"
+                                : def.isManager
+                                ? "group relative rounded-[16px] border border-[var(--accent)]/30 bg-[var(--card-bg)] px-2.5 py-1.5 text-[11px] shadow-[0_2px_6px_-2px_rgba(28,27,24,0.12)] backdrop-blur-[var(--card-blur)]"
+                                : "group relative rounded-[16px] px-2.5 py-1.5 text-[11px] shadow-[0_1px_2px_rgba(28,27,24,0.04)]"
+                            }
+                            style={b.affordableNow && !def.isManager ? { background: "var(--gradient-hero)" } : undefined}
+                          >
+                            <DetailTooltip detail={b.detail} />
+                            <div className="flex items-center justify-between">
+                              <button
+                                onClick={() => onOpenDetail(b.ticker, b.name ?? b.ticker)}
+                                className="font-semibold hover:underline"
+                                style={{ color: b.affordableNow ? "var(--foreground)" : "var(--text-secondary)" }}
+                              >
+                                {b.name ?? b.ticker}
+                              </button>
+                              <span className="font-mono text-[10.5px] font-bold" style={{ color: b.affordableNow ? "var(--accent)" : "var(--text-muted)" }}>
+                                {b.suggestedShares}株({fmtYen(b.suggestedValueJpy)})
+                              </span>
+                            </div>
+                            <div className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-[var(--text-secondary)]">
+                              <span>{b.reason}</span>
+                              {b.estimatedFeeJpy > 0 && <span>手数料目安 {fmtYen(b.estimatedFeeJpy)}</span>}
+                              {b.affordableNow ? (
+                                <span className="rounded-full bg-[var(--accent)]/15 px-1.5 py-0.5 font-semibold text-[var(--accent)]">今すぐ買える</span>
+                              ) : (
+                                <span className="rounded-full bg-[#a39d8c]/15 px-1.5 py-0.5 font-semibold text-[var(--text-muted)]">資金不足</span>
+                              )}
+                            </div>
                           </li>
                         ))}
                       </ul>
@@ -245,42 +270,23 @@ export function PersonasTab({
                   </div>
 
                   <div className="mt-3">
-                    <div className="mb-1 flex items-center gap-1 text-[10.5px] font-bold text-[#c9962f]">
-                      <TrendingUp size={12} strokeWidth={2.5} />
-                      買い推奨
+                    <div className="mb-1 flex items-center gap-1 text-[10.5px] font-bold text-[var(--price-up)]">
+                      <TrendingDown size={12} strokeWidth={2.5} />
+                      売り推奨
                     </div>
-                    {a.buys.length === 0 ? (
-                      <p className="text-[11px] text-[#a39d8c]">なし</p>
+                    {a.sells.length === 0 ? (
+                      <p className="text-[11px] text-[var(--text-muted)]">なし</p>
                     ) : (
-                      <ul className="space-y-1">
-                        {a.buys.map((b) => (
+                      <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                        {a.sells.map((s) => (
                           <li
-                            key={b.ticker}
-                            className="group relative rounded-lg px-2 py-1.5 text-[11px]"
-                            style={b.affordableNow ? { background: "#e5f0ec" } : { background: "#f3f2ec", opacity: 0.6 }}
+                            key={s.ticker}
+                            className="group relative flex items-center justify-between rounded-[16px] border border-[var(--card-border)] bg-[var(--card-bg)] px-2.5 py-1.5 text-[11px] backdrop-blur-[var(--card-blur)]"
                           >
-                            <DetailTooltip detail={b.detail} />
-                            <div className="flex items-center justify-between">
-                              <button
-                                onClick={() => onOpenDetail(b.ticker, b.name ?? b.ticker)}
-                                className="font-semibold hover:underline"
-                                style={{ color: b.affordableNow ? "#1c1b18" : "#6c6656" }}
-                              >
-                                {b.name ?? b.ticker}
-                              </button>
-                              <span className="font-mono text-[10.5px] font-bold" style={{ color: b.affordableNow ? "#c9962f" : "#a39d8c" }}>
-                                {b.suggestedShares}株({fmtYen(b.suggestedValueJpy)})
-                              </span>
-                            </div>
-                            <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-[#6c6656]">
-                              <span>{b.reason}</span>
-                              {b.estimatedFeeJpy > 0 && <span>手数料目安 {fmtYen(b.estimatedFeeJpy)}</span>}
-                              {b.affordableNow ? (
-                                <span className="rounded-full bg-[#c9962f]/15 px-1.5 py-0.5 font-semibold text-[#c9962f]">今すぐ買える</span>
-                              ) : (
-                                <span className="rounded-full bg-[#a39d8c]/15 px-1.5 py-0.5 font-semibold text-[#a39d8c]">資金不足</span>
-                              )}
-                            </div>
+                            <button onClick={() => onOpenDetail(s.ticker, s.name)} className="truncate font-semibold text-[var(--foreground)] hover:underline">
+                              {s.name}
+                            </button>
+                            <DetailTooltip detail={s.detail} />
                           </li>
                         ))}
                       </ul>
@@ -293,14 +299,26 @@ export function PersonasTab({
         )}
 
         <details className={`${GLASS_CARD} group`}>
-          <summary className="cursor-pointer list-none text-[12px] font-bold text-[#6c6656]">
+          <summary className="cursor-pointer list-none text-[12.5px] font-bold text-[var(--text-secondary)]">
             <span className="inline-flex items-center gap-1.5">
               検証用: このルールに従い続けた場合の仮想運用成績(架空資金)
-              <span className="text-[10px] font-normal text-[#a39d8c] group-open:hidden">(クリックで開く)</span>
+              <span className="text-[10.5px] font-normal text-[var(--text-muted)] group-open:hidden">(クリックで開く)</span>
             </span>
           </summary>
           <div className="mt-3">
             <SimulatedTrackRecord />
+          </div>
+        </details>
+
+        <details className={`${GLASS_CARD} group mt-4`}>
+          <summary className="cursor-pointer list-none text-[12.5px] font-bold text-[var(--text-secondary)]">
+            <span className="inline-flex items-center gap-1.5">
+              過去5年のトレンドフォロー検証(株価データのみ)・S&amp;P500との比較
+              <span className="text-[10.5px] font-normal text-[var(--text-muted)] group-open:hidden">(クリックで開く)</span>
+            </span>
+          </summary>
+          <div className="mt-3">
+            <TrendBacktestCard />
           </div>
         </details>
       </GlassPageShell>
@@ -370,7 +388,7 @@ function SimulatedTrackRecord() {
 
   return (
     <div>
-      <p className="text-[11px] text-[#6c6656]">
+      <p className="text-[11px] text-[var(--text-secondary)]">
         各アドバイザーに架空の元手{fmtYen(STARTING_CASH_JPY)}(計7口座)を与え、上と同じルールで実際に売買させ続けたら成績がどうなるかを記録しています。実際の売買は一切行いません。
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -378,14 +396,14 @@ function SimulatedTrackRecord() {
           {running ? "更新中…" : "検証データを更新する"}
         </button>
         {data?.lastRunAt && (
-          <span className="text-[10.5px] text-[#a39d8c]">
+          <span className="text-[10.5px] text-[var(--text-muted)]">
             最終更新:{" "}
             {new Date(data.lastRunAt).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}
           </span>
         )}
       </div>
-      {runError && <p className="mt-2 rounded-lg bg-[#c0392b]/10 px-3 py-2 text-[11.5px] text-[#c0392b]">{runError}</p>}
-      {loading && !data && <div className="mt-3 text-xs text-[#6c6656]">読み込み中…</div>}
+      {runError && <p className="mt-2 rounded-lg bg-[var(--price-up)]/10 px-3 py-2 text-[11px] text-[var(--price-up)]">{runError}</p>}
+      {loading && !data && <div className="mt-3 text-xs text-[var(--text-secondary)]">読み込み中…</div>}
 
       {data && (
         <>
@@ -396,13 +414,13 @@ function SimulatedTrackRecord() {
               const equity = acc.equityHistory.length > 0 ? acc.equityHistory[acc.equityHistory.length - 1].valueJPY : STARTING_CASH_JPY;
               const returnPct = ((equity - STARTING_CASH_JPY) / STARTING_CASH_JPY) * 100;
               return (
-                <div key={id} className="rounded-xl bg-[#f7f6f1] p-2.5">
+                <div key={id} className="rounded-xl bg-[var(--fill-subtle)] p-2.5">
                   <div className="flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full" style={{ background: PERSONA_COLOR[id] }} />
-                    <span className="text-[10px] font-bold text-[#1c1b18]">{def.label.split("(")[0]}</span>
+                    <span className="text-[10.5px] font-bold text-[var(--foreground)]">{def.label.split("(")[0]}</span>
                   </div>
-                  <div className="mt-1 text-[13px] font-extrabold text-[#1c1b18]">{fmtYen(equity)}</div>
-                  <div className="text-[10.5px] font-semibold" style={{ color: returnPct >= 0 ? "#2f9e5c" : "#c0392b" }}>
+                  <div className="mt-1 text-[13px] font-extrabold text-[var(--foreground)]">{fmtYen(equity)}</div>
+                  <div className="text-[10.5px] font-semibold" style={{ color: returnPct >= 0 ? "var(--status-good)" : "var(--price-up)" }}>
                     {returnPct >= 0 ? "+" : ""}
                     {returnPct.toFixed(1)}%
                   </div>
@@ -415,7 +433,7 @@ function SimulatedTrackRecord() {
             <div className="mt-3 max-h-60 overflow-auto">
               <table className="w-full min-w-[480px] text-[10.5px]">
                 <thead>
-                  <tr className={`border-b border-[#e2dfd2] text-left ${GLASS_TEXT2}`}>
+                  <tr className={`border-b border-[var(--border-subtle)] text-left ${GLASS_TEXT2}`}>
                     <th className="whitespace-nowrap py-1 pr-2 font-semibold">日付</th>
                     <th className="whitespace-nowrap py-1 pr-2 font-semibold">運用者</th>
                     <th className="whitespace-nowrap py-1 pr-2 font-semibold">銘柄</th>
@@ -425,14 +443,14 @@ function SimulatedTrackRecord() {
                 </thead>
                 <tbody>
                   {allTrades.slice(0, 30).map((t, i) => (
-                    <tr key={i} className="border-b border-[#f0efe6] last:border-none">
-                      <td className="whitespace-nowrap py-1 pr-2 text-[#a39d8c]">{t.date}</td>
+                    <tr key={i} className="border-b border-[var(--fill-pill)] last:border-none">
+                      <td className="whitespace-nowrap py-1 pr-2 text-[var(--text-muted)]">{t.date}</td>
                       <td className="whitespace-nowrap py-1 pr-2">{PERSONA_DEFS.find((d) => d.id === t.personaId)?.label.split("(")[0]}</td>
                       <td className="whitespace-nowrap py-1 pr-2">{t.name ?? t.ticker}</td>
-                      <td className="whitespace-nowrap py-1 pr-2" style={{ color: t.side === "buy" ? "#c0392b" : "#2f6fb0" }}>
+                      <td className="whitespace-nowrap py-1 pr-2" style={{ color: t.side === "buy" ? "var(--price-up)" : "var(--price-down)" }}>
                         {t.side === "buy" ? "買い" : "売り"}
                       </td>
-                      <td className="whitespace-nowrap py-1 pr-2 text-right" style={{ color: (t.plJPY ?? 0) >= 0 ? "#2f9e5c" : "#c0392b" }}>
+                      <td className="whitespace-nowrap py-1 pr-2 text-right" style={{ color: (t.plJPY ?? 0) >= 0 ? "var(--status-good)" : "var(--price-up)" }}>
                         {t.plJPY != null ? `${t.plJPY >= 0 ? "+" : ""}${fmtYen(t.plJPY)}` : "—"}
                       </td>
                     </tr>

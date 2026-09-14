@@ -7,6 +7,13 @@
       "runtimeArgs": ["run", "dev"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "stock-news-app-prod",
+      "runtimeExecutable": "C:\\Users\\atsua\\projects\\stock-news-app\\.nodejs\\node-v22.14.0-win-x64\\npm.cmd",
+      "runtimeArgs": ["run", "start"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

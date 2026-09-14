@@ -1,4 +1,9 @@
 import { fetchYahooAuthenticated, num, type RawNum } from "./stockMetrics";
+import { cachedFundamental } from "./fundamentalsCache";
+
+// 年次決算は四半期に一度程度しか更新されないため、3日間はディスクキャッシュを使い回す
+// (本日の注目銘柄フルスキャンで毎日同じ約2,050銘柄を評価する際の重複問い合わせを削減する)。
+const CACHE_TTL_MS = 3 * 24 * 60 * 60 * 1000;
 
 // 「営業利益が右肩上がりか」のような複数年の業績トレンドを見るためのデータ取得。
 // quoteSummaryのincomeStatementHistoryは現在エンドデートのみしか返さないため、
@@ -34,6 +39,10 @@ function seriesByDate(entries: (TimeseriesEntry | null)[] | undefined): Map<stri
 
 // 直近5年分の売上高・営業利益・純利益の年次推移を取得する。
 export async function fetchFinancialTrend(ticker: string): Promise<FinancialYear[]> {
+  return cachedFundamental(`financialTrend:${ticker}`, CACHE_TTL_MS, () => fetchFinancialTrendUncached(ticker));
+}
+
+async function fetchFinancialTrendUncached(ticker: string): Promise<FinancialYear[]> {
   const period2 = Math.floor(Date.now() / 1000);
   const period1 = period2 - 6 * 365 * 24 * 3600;
 

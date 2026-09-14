@@ -6,8 +6,8 @@ const W = 600;
 const H = 140;
 const PAD = 8;
 
-const STOCK_COLOR = "#c9962f";
-const CASH_COLOR = "#cf9a4c";
+const STOCK_COLOR = "var(--accent)";
+const CASH_COLOR = "var(--accent-strong)";
 
 function fmtJpy(n: number): string {
   return "¥" + Math.round(n).toLocaleString("ja-JP");
@@ -17,7 +17,7 @@ function fmtJpy(n: number): string {
 export function PortfolioValueChart({ history, showLegend = true }: { history: PortfolioSnapshot[]; showLegend?: boolean }) {
   if (history.length < 2) {
     return (
-      <div className="flex h-[140px] items-center justify-center text-[12px] text-[#6c6656]">
+      <div className="flex h-[140px] items-center justify-center text-[12.5px] text-[var(--text-secondary)]">
         記録が2日分たまると推移グラフが表示されます
       </div>
     );
@@ -64,7 +64,7 @@ export function PortfolioValueChart({ history, showLegend = true }: { history: P
         <path d={totalLinePath} fill="none" stroke={STOCK_COLOR} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
         <circle cx={totalTopPoints[totalTopPoints.length - 1].x} cy={totalTopPoints[totalTopPoints.length - 1].y} r="3" fill={STOCK_COLOR} />
       </svg>
-      <div className="mt-1 flex justify-between text-[10.5px] text-[#a39d8c]">
+      <div className="mt-1 flex justify-between text-[10.5px] text-[var(--text-muted)]">
         <span>{first.date}</span>
         <span>{last.date}</span>
       </div>
@@ -72,16 +72,16 @@ export function PortfolioValueChart({ history, showLegend = true }: { history: P
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ background: STOCK_COLOR }} />
-            <span className="text-[#6c6656]">株式評価額</span>
-            <span className="font-semibold tabular-nums text-[#1c1b18]">{fmtJpy(last.valueJpy)}</span>
+            <span className="text-[var(--text-secondary)]">株式評価額</span>
+            <span className="font-semibold tabular-nums text-[var(--foreground)]">{fmtJpy(last.valueJpy)}</span>
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ background: CASH_COLOR }} />
-            <span className="text-[#6c6656]">現金</span>
-            <span className="font-semibold tabular-nums text-[#1c1b18]">{fmtJpy(last.cashJpy)}</span>
+            <span className="text-[var(--text-secondary)]">現金</span>
+            <span className="font-semibold tabular-nums text-[var(--foreground)]">{fmtJpy(last.cashJpy)}</span>
           </span>
-          <span className="text-[#6c6656]">
-            合計 <span className="font-semibold tabular-nums text-[#1c1b18]">{fmtJpy(last.valueJpy + last.cashJpy)}</span>
+          <span className="text-[var(--text-secondary)]">
+            合計 <span className="font-semibold tabular-nums text-[var(--foreground)]">{fmtJpy(last.valueJpy + last.cashJpy)}</span>
           </span>
         </div>
       )}

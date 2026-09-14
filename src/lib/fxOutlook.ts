@@ -66,7 +66,20 @@ function deriveLeanAndReasoning(phase: FxPhase): { lean: string; reasoning: stri
   }
 }
 
+// 1年分の日足を取得して計算する比較的重い処理な上、複数のタブから同じ結果を求められるため、
+// 短時間だけプロセス内にキャッシュする(quotes.ts・marketBenchmark.tsと同じ考え方)。
+// 移動平均ベースの局面判定なので、1分程度の遅延は実用上問題にならない。
+const CACHE_TTL_MS = 60 * 1000;
+let cache: { data: FxOutlook | null; fetchedAt: number } | null = null;
+
 export async function fetchFxOutlook(): Promise<FxOutlook | null> {
+  if (cache && Date.now() - cache.fetchedAt < CACHE_TTL_MS) return cache.data;
+  const data = await fetchFxOutlookUncached();
+  cache = { data, fetchedAt: Date.now() };
+  return data;
+}
+
+async function fetchFxOutlookUncached(): Promise<FxOutlook | null> {
   const url = "https://query1.finance.yahoo.com/v8/finance/chart/JPY=X?range=1y&interval=1d";
   const res = await fetch(url, { headers: HEADERS, cache: "no-store", signal: AbortSignal.timeout(15000) });
   if (!res.ok) return null;

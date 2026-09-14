@@ -10,8 +10,14 @@ interface SearchResult {
 
 export function StockSearchBar({
   onSelect,
+  placeholder = "ティッカー・銘柄名で検索(例: 7203.T、トヨタ、AAPL)",
+  variant = "default",
 }: {
   onSelect: (symbol: string, name: string) => void;
+  placeholder?: string;
+  // "sidebar": サイドバーのナビタイル(border-white/50 bg-white/40)と同じ半透明ガラス質感に
+  // 合わせる。既定の白ベタ塗り(bg-white/90)は、検索欄単体のページ本文向けの見た目のまま残す。
+  variant?: "default" | "sidebar";
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -77,7 +83,13 @@ export function StockSearchBar({
 
   return (
     <div ref={containerRef} className="relative mb-4">
-      <div className="flex items-center gap-2 rounded-full border border-[#e2dfd2] bg-white/90 px-4 py-2.5">
+      <div
+        className={`flex items-center gap-2 rounded-full border px-4 py-2.5 transition ${
+          variant === "sidebar"
+            ? "border-white/70 bg-white/65 focus-within:bg-white/85 hover:bg-white/75"
+            : "border-[var(--border-subtle)] bg-[var(--surface)]"
+        }`}
+      >
         <svg
           width="14"
           height="14"
@@ -85,7 +97,7 @@ export function StockSearchBar({
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          className="shrink-0 text-[#6c6656] opacity-70"
+          className={`shrink-0 text-[var(--text-secondary)] ${variant === "sidebar" ? "opacity-90" : "opacity-70"}`}
         >
           <circle cx="11" cy="11" r="7" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -97,17 +109,17 @@ export function StockSearchBar({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          placeholder="ティッカー・銘柄名で検索(例: 7203.T、トヨタ、AAPL)"
-          className="w-full bg-transparent text-[13.5px] text-[#1c1b18] outline-none placeholder:text-[#6c6656]"
+          placeholder={placeholder}
+          className="w-full bg-transparent text-[13px] text-[var(--foreground)] outline-none placeholder:text-[var(--text-secondary)]"
         />
       </div>
 
       {open && query.trim().length > 0 && (
-        <div className="absolute z-40 mt-2 w-full overflow-hidden rounded-2xl border border-[#e2dfd2] bg-white shadow-lg">
-          {loading && <div className="px-4 py-3 text-[12.5px] text-[#6c6656]">検索中…</div>}
-          {!loading && error && <div className="px-4 py-3 text-[12.5px] text-[#c0392b]">{error}</div>}
+        <div className="absolute z-40 mt-2 w-full overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] shadow-lg">
+          {loading && <div className="px-4 py-3 text-[12.5px] text-[var(--text-secondary)]">検索中…</div>}
+          {!loading && error && <div className="px-4 py-3 text-[12.5px] text-[var(--price-up)]">{error}</div>}
           {!loading && !error && results.length === 0 && (
-            <div className="px-4 py-3 text-[12.5px] text-[#6c6656]">該当する銘柄が見つかりません</div>
+            <div className="px-4 py-3 text-[12.5px] text-[var(--text-secondary)]">該当する銘柄が見つかりません</div>
           )}
           {!loading &&
             !error &&
@@ -115,10 +127,10 @@ export function StockSearchBar({
               <button
                 key={r.symbol}
                 onClick={() => selectResult(r)}
-                className="flex w-full items-center justify-between px-4 py-2.5 text-left transition hover:bg-[#f7f6f1]"
+                className="flex w-full items-center justify-between px-4 py-2.5 text-left transition hover:bg-[var(--fill-subtle)]"
               >
-                <span className="truncate text-[13px] font-semibold text-[#1c1b18]">{r.name}</span>
-                <span className="ml-3 shrink-0 font-mono text-[11.5px] text-[#6c6656]">{r.symbol}</span>
+                <span className="truncate text-[13px] font-semibold text-[var(--foreground)]">{r.name}</span>
+                <span className="ml-3 shrink-0 font-mono text-[11px] text-[var(--text-secondary)]">{r.symbol}</span>
               </button>
             ))}
         </div>

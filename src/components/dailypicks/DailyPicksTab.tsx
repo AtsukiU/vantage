@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GlassPageShell } from "../GlassPageShell";
 import type { DailyScreenState, DailyScreenEntry, ScreenMarket } from "@/lib/dailyScreenStore";
 import { computeOverallScore } from "@/lib/dailyPickOverall";
 import { GLASS_CARD, GLASS_BTN_GHOST, GLASS_EXCELLENT, GLASS_GOOD, GLASS_UP, GLASS_DOWN, GLASS_TEXT2 } from "@/lib/glassStyles";
 import { OverallScoreBadge } from "../OverallScoreBadge";
+import { Gavel } from "lucide-react";
 
 const POLL_MS = 4000;
 
 type SortableKey = "price" | "dayChangePercent" | "overallScore" | "rsPercentile";
+type ViewKey = ScreenMarket | "all";
 
 const COLUMNS: { key: SortableKey; label: string }[] = [
   { key: "price", label: "価格" },
@@ -30,9 +32,27 @@ const MARKETS: { key: ScreenMarket; label: string; universe: string }[] = [
   { key: "us", label: "米国株", universe: "S&P500構成銘柄(約500銘柄)" },
 ];
 
+const VIEWS: { key: ViewKey; label: string }[] = [
+  { key: "jp", label: "日本株" },
+  { key: "us", label: "米国株" },
+  { key: "all", label: "全体" },
+];
+
+const MARKET_TAG: Record<ScreenMarket, { label: string; color: string }> = {
+  jp: { label: "日本", color: "var(--price-down)" },
+  us: { label: "米国", color: "#8f6ea3" },
+};
+
 interface Row extends DailyScreenEntry {
   overallScore: number; // 0-100。ミネルヴィニ/CANSLIM/財務健全性/委員会の4スコアの単純平均
   overallGrade: string;
+  sourceMarket: ScreenMarket;
+}
+
+// 運用アドバイザーの「総合スコア型(投資委員会)」ペルソナの採用基準(personaRules.ts)と
+// 揃えた閾値: 投資委員会5役のうち60%以上が賛成している銘柄を「委員会推奨」として扱う。
+function isCommitteeRecommended(e: DailyScreenEntry): boolean {
+  return e.committeeAgree != null && e.committeeTotal != null && e.committeeTotal > 0 && e.committeeAgree / e.committeeTotal >= 0.6;
 }
 
 function rsColor(rsPercentile: number | null): string {
@@ -42,11 +62,26 @@ function rsColor(rsPercentile: number | null): string {
   return GLASS_TEXT2;
 }
 
-function toRows(results: DailyScreenEntry[]): Row[] {
+function toRows(results: DailyScreenEntry[], market: ScreenMarket): Row[] {
   return results.map((e) => {
     const { score, grade } = computeOverallScore(e);
-    return { ...e, overallScore: score, overallGrade: grade };
+    return { ...e, overallScore: score, overallGrade: grade, sourceMarket: market };
   });
+}
+
+// 「全体(日本株+米国株)」表示用: それぞれの市場のスキャン結果を合算した上で、RSパーセンタイルを
+// 合算後の母集団全体で計算し直す(各市場のrsPercentileはその市場単独のスキャン対象内での
+// 順位のため、そのまま混ぜるとJP/USで基準が揃わない。dailyScreenStore.tsのassignRsPercentilesと
+// 同じロジックをクライアント側で合算データに対して再適用する)。
+function combineWithRecomputedRs(jpResults: DailyScreenEntry[], usResults: DailyScreenEntry[]): Row[] {
+  const combined: Row[] = [...toRows(jpResults, "jp"), ...toRows(usResults, "us")];
+  const withRs = combined.filter((e): e is Row & { relativeStrengthPct: number } => e.relativeStrengthPct != null);
+  const sorted = [...withRs].sort((a, b) => a.relativeStrengthPct - b.relativeStrengthPct);
+  const n = sorted.length;
+  sorted.forEach((e, rank) => {
+    e.rsPercentile = n <= 1 ? 100 : Math.round((rank / (n - 1)) * 100);
+  });
+  return combined;
 }
 
 // デフォルト(未ソート時)は総合評価の高い順で並べる。
@@ -65,6 +100,10 @@ function sortByColumn(rows: Row[], key: SortableKey, dir: 1 | -1): Row[] {
   });
 }
 
+function fmtFinished(iso: string | null): string | null {
+  return iso ? new Date(iso).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : null;
+}
+
 export function DailyPicksTab({
   hidden,
   onOpenDetail,
@@ -72,39 +111,48 @@ export function DailyPicksTab({
   hidden: boolean;
   onOpenDetail: (symbol: string, name: string) => void;
 }) {
-  const [market, setMarket] = useState<ScreenMarket>("jp");
-  const [state, setState] = useState<DailyScreenState | null>(null);
+  const [view, setView] = useState<ViewKey>("jp");
+  const [jpState, setJpState] = useState<DailyScreenState | null>(null);
+  const [usState, setUsState] = useState<DailyScreenState | null>(null);
   const [showCount, setShowCount] = useState(30);
   const [columnSort, setColumnSort] = useState<{ key: SortableKey; dir: 1 | -1 } | null>(null);
   const [rsFilter, setRsFilter] = useState(0);
   const pollRef = useRef<number | null>(null);
 
-  async function fetchStatus(m: ScreenMarket) {
+  async function fetchBoth() {
     try {
-      const res = await fetch(`/api/daily-screen/status?market=${m}`, { cache: "no-store" });
-      const json = await res.json();
-      setState(json);
-      return json as DailyScreenState;
+      const [jpRes, usRes] = await Promise.all([
+        fetch("/api/daily-screen/status?market=jp", { cache: "no-store" }),
+        fetch("/api/daily-screen/status?market=us", { cache: "no-store" }),
+      ]);
+      const [jp, us] = await Promise.all([jpRes.json(), usRes.json()]);
+      setJpState(jp);
+      setUsState(us);
+      return { jp, us } as { jp: DailyScreenState; us: DailyScreenState };
     } catch {
       return null;
     }
   }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- 市場切替時に現在のスキャン状況を同期
-    setState(null);
-    fetchStatus(market);
-    setShowCount(30);
-    setColumnSort(null);
-    setRsFilter(0);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- タブを開いた時に両市場の状況を取得
+    fetchBoth();
     return () => {
       if (pollRef.current != null) window.clearInterval(pollRef.current);
     };
-  }, [market]);
+  }, []);
 
   useEffect(() => {
-    if (state?.status === "running") {
-      pollRef.current = window.setInterval(() => fetchStatus(market), POLL_MS);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 表示切替時にフィルタ・ソートをリセット
+    setShowCount(30);
+    setColumnSort(null);
+    setRsFilter(0);
+  }, [view]);
+
+  const anyRunning = jpState?.status === "running" || usState?.status === "running";
+  useEffect(() => {
+    if (anyRunning) {
+      pollRef.current = window.setInterval(fetchBoth, POLL_MS);
     } else if (pollRef.current != null) {
       window.clearInterval(pollRef.current);
       pollRef.current = null;
@@ -112,8 +160,7 @@ export function DailyPicksTab({
     return () => {
       if (pollRef.current != null) window.clearInterval(pollRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state?.status]);
+  }, [anyRunning]);
 
   function toggleColumnSort(key: SortableKey) {
     setColumnSort((prev) => {
@@ -123,87 +170,128 @@ export function DailyPicksTab({
     });
   }
 
-  const rows = state ? toRows(state.results) : [];
+  const singleState = view === "jp" ? jpState : view === "us" ? usState : null;
+
+  const rows: Row[] = useMemo(() => {
+    if (view === "all") {
+      const jpResults = jpState?.status === "done" ? jpState.results : [];
+      const usResults = usState?.status === "done" ? usState.results : [];
+      return combineWithRecomputedRs(jpResults, usResults);
+    }
+    if (singleState?.status === "done") return toRows(singleState.results, view);
+    return [];
+  }, [view, jpState, usState, singleState]);
+
   const filtered = rsFilter > 0 ? rows.filter((r) => r.rsPercentile != null && r.rsPercentile >= rsFilter) : rows;
   const sorted = columnSort ? sortByColumn(filtered, columnSort.key, columnSort.dir) : defaultSort(filtered);
-  const finishedLabel = state?.finishedAt
-    ? new Date(state.finishedAt).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })
-    : null;
-  const marketInfo = MARKETS.find((m) => m.key === market)!;
+
+  const hasAnyRows = view === "all" ? rows.length > 0 : singleState?.status === "done";
 
   return (
-    <section hidden={hidden}>
-      <GlassPageShell maxWidth="max-w-5xl">
+    <section hidden={hidden} className="h-full">
+      <GlassPageShell>
         <div className={`${GLASS_CARD} mb-4`}>
           <div>
-            <h2 className="text-[13px] font-extrabold text-[#1c1b18]">本日の注目銘柄</h2>
-            <p className="mt-1 text-xs text-[#6c6656]">
-              {marketInfo.universe}をフルスキャンし、ミネルヴィニ・CANSLIM・財務健全性・投資委員会の合議スコアから総合評価を出します。
+            <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">本日の注目銘柄</h2>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              {view === "all"
+                ? "東証プライム市場(約1,550銘柄)+S&P500構成銘柄(約500銘柄)を合算し、ミネルヴィニ・CANSLIM・財務健全性・投資委員会の合議スコアから総合評価を出します。"
+                : `${MARKETS.find((m) => m.key === view)!.universe}をフルスキャンし、ミネルヴィニ・CANSLIM・財務健全性・投資委員会の合議スコアから総合評価を出します。`}
             </p>
           </div>
 
-          <div className="mt-3 flex w-fit gap-1 rounded-full bg-[#f0efe6] p-1">
-            {MARKETS.map((m) => (
+          <div className="mt-3 flex w-fit gap-1 rounded-full bg-[var(--fill-pill)] p-1">
+            {VIEWS.map((v) => (
               <button
-                key={m.key}
-                onClick={() => setMarket(m.key)}
+                key={v.key}
+                onClick={() => setView(v.key)}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  market === m.key ? "bg-white text-[#c9962f] shadow-sm" : "text-[#6c6656] hover:text-[#1c1b18]"
+                  view === v.key ? "bg-[var(--surface)] text-[var(--accent)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--foreground)]"
                 }`}
               >
-                {m.label}
+                {v.label}
               </button>
             ))}
           </div>
 
-          {!state && <div className="mt-3 text-xs text-[#6c6656]">状態を確認中…</div>}
+          {view !== "all" && (
+            <>
+              {!singleState && <div className="mt-3 text-xs text-[var(--text-secondary)]">状態を確認中…</div>}
 
-          {state?.status === "idle" && (
-            <p className="mt-3 rounded-lg bg-[#f0efe6] px-3 py-2 text-[11.5px] text-[#6c6656]">
-              まだ本日分のスキャンが実行されていません。ニュースタブ先頭の「スキャン開始」から実行してください。
-            </p>
+              {singleState?.status === "idle" && (
+                <p className="mt-3 rounded-lg bg-[var(--fill-pill)] px-3 py-2 text-[11px] text-[var(--text-secondary)]">
+                  まだ本日分のスキャンが実行されていません。ニュースタブ先頭の「スキャン開始」から実行してください。
+                </p>
+              )}
+
+              {singleState?.status === "running" && (
+                <div className="mt-3">
+                  <div className="mb-1.5 flex justify-between text-xs text-[var(--text-secondary)]">
+                    <span>スキャン中… {singleState.progress.done} / {singleState.progress.total}銘柄</span>
+                    <span>{singleState.progress.total > 0 ? Math.round((singleState.progress.done / singleState.progress.total) * 100) : 0}%</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--fill-pill)]">
+                    <div
+                      className="h-full rounded-full bg-[var(--accent)] transition-all"
+                      style={{ width: `${singleState.progress.total > 0 ? (singleState.progress.done / singleState.progress.total) * 100 : 0}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 text-[11px] text-[var(--text-muted)]">このページを開いたままでも、他のタブに移動しても処理は続きます。</p>
+                </div>
+              )}
+
+              {singleState?.status === "error" && (
+                <div className="mt-3">
+                  <p className="rounded-lg bg-[var(--price-up)]/10 px-3 py-2 text-[12.5px] text-[var(--price-up)]">{singleState.error ?? "スキャンに失敗しました"}</p>
+                  <p className="mt-2 text-[11px] text-[var(--text-secondary)]">ニュースタブ先頭の「再スキャン」からやり直してください。</p>
+                </div>
+              )}
+
+              {singleState?.status === "done" && (
+                <p className="mt-2 text-[11px] text-[var(--text-muted)]">
+                  最終更新: {fmtFinished(singleState.finishedAt)}({singleState.results.length}銘柄取得)
+                </p>
+              )}
+            </>
           )}
 
-          {state?.status === "running" && (
-            <div className="mt-3">
-              <div className="mb-1.5 flex justify-between text-xs text-[#6c6656]">
-                <span>スキャン中… {state.progress.done} / {state.progress.total}銘柄</span>
-                <span>{state.progress.total > 0 ? Math.round((state.progress.done / state.progress.total) * 100) : 0}%</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-[#f0efe6]">
-                <div
-                  className="h-full rounded-full bg-[#c9962f] transition-all"
-                  style={{ width: `${state.progress.total > 0 ? (state.progress.done / state.progress.total) * 100 : 0}%` }}
-                />
-              </div>
-              <p className="mt-2 text-[11px] text-[#a39d8c]">このページを開いたままでも、他のタブに移動しても処理は続きます。</p>
+          {view === "all" && (
+            <div className="mt-3 space-y-1.5">
+              {MARKETS.map((m) => {
+                const s = m.key === "jp" ? jpState : usState;
+                if (!s) return <p key={m.key} className="text-xs text-[var(--text-secondary)]">{m.label}: 状態を確認中…</p>;
+                if (s.status === "idle")
+                  return <p key={m.key} className="text-xs text-[var(--text-secondary)]">{m.label}: 未スキャン(ニュースタブ先頭からスキャン開始)</p>;
+                if (s.status === "running")
+                  return (
+                    <p key={m.key} className="text-xs text-[var(--accent)]">
+                      {m.label}: スキャン中 {s.progress.done}/{s.progress.total}銘柄
+                    </p>
+                  );
+                if (s.status === "error") return <p key={m.key} className="text-xs text-[var(--price-up)]">{m.label}: スキャンに失敗しました</p>;
+                return (
+                  <p key={m.key} className="text-xs text-[var(--text-muted)]">
+                    {m.label}: 更新済み({s.results.length}銘柄、最終更新 {fmtFinished(s.finishedAt)})
+                  </p>
+                );
+              })}
+              {jpState?.status !== "done" || usState?.status !== "done" ? (
+                <p className="text-[11px] text-[var(--text-muted)]">※片方の市場が未スキャンの間は、更新済みの市場分だけで表示します。</p>
+              ) : null}
             </div>
-          )}
-
-          {state?.status === "error" && (
-            <div className="mt-3">
-              <p className="rounded-lg bg-[#c0392b]/10 px-3 py-2 text-[12px] text-[#c0392b]">{state.error ?? "スキャンに失敗しました"}</p>
-              <p className="mt-2 text-[11.5px] text-[#6c6656]">ニュースタブ先頭の「再スキャン」からやり直してください。</p>
-            </div>
-          )}
-
-          {state?.status === "done" && (
-            <p className="mt-2 text-[11px] text-[#a39d8c]">
-              最終更新: {finishedLabel}({state.results.length}銘柄取得)
-            </p>
           )}
         </div>
 
-        {state?.status === "done" && rows.length > 0 && (
+        {hasAnyRows && rows.length > 0 && (
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <span className="text-[11px] text-[#6c6656]">相対力(RS)フィルタ:</span>
-            <div className="flex w-fit gap-1 rounded-full bg-[#f0efe6] p-1">
+            <span className="text-[11px] text-[var(--text-secondary)]">相対力(RS)フィルタ:</span>
+            <div className="flex w-fit gap-1 rounded-full bg-[var(--fill-pill)] p-1">
               {RS_FILTERS.map((f) => (
                 <button
                   key={f.threshold}
                   onClick={() => setRsFilter(f.threshold)}
                   className={`rounded-full px-3 py-1 text-[11px] font-semibold transition ${
-                    rsFilter === f.threshold ? "bg-white text-[#c9962f] shadow-sm" : "text-[#6c6656] hover:text-[#1c1b18]"
+                    rsFilter === f.threshold ? "bg-[var(--surface)] text-[var(--accent)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--foreground)]"
                   }`}
                 >
                   {f.label}
@@ -213,24 +301,24 @@ export function DailyPicksTab({
           </div>
         )}
 
-        {state?.status === "done" && rows.length > 0 && sorted.length === 0 && (
-          <div className={`${GLASS_CARD} text-center text-xs text-[#6c6656]`}>
+        {hasAnyRows && rows.length > 0 && sorted.length === 0 && (
+          <div className={`${GLASS_CARD} text-center text-xs text-[var(--text-secondary)]`}>
             この条件に一致する銘柄はありません。フィルタを緩めてください。
           </div>
         )}
 
-        {state?.status === "done" && sorted.length > 0 && (
+        {hasAnyRows && sorted.length > 0 && (
           <>
             <div className={`${GLASS_CARD} overflow-x-auto p-0`}>
               <table className="w-full min-w-[560px] text-sm">
                 <thead>
-                  <tr className="border-b border-[#e2dfd2] text-left text-[11px] text-[#6c6656]">
+                  <tr className="border-b border-[var(--border-subtle)] text-left text-[11px] text-[var(--text-secondary)]">
                     <th className="px-4 py-2.5 font-medium">銘柄</th>
                     {COLUMNS.map((col) => (
                       <th
                         key={col.key}
                         onClick={() => toggleColumnSort(col.key)}
-                        className="cursor-pointer select-none px-3 py-2.5 text-right font-medium hover:text-[#c9962f]"
+                        className="cursor-pointer select-none px-3 py-2.5 text-right font-medium hover:text-[var(--accent)]"
                       >
                         {col.label}
                         {columnSort?.key === col.key && (columnSort.dir === -1 ? " ▼" : " ▲")}
@@ -243,17 +331,36 @@ export function DailyPicksTab({
                     const up = (r.dayChangePercent ?? 0) >= 0;
                     const currencyPrefix = r.currency === "JPY" ? "¥" : r.currency === "USD" ? "$" : "";
                     return (
-                      <tr key={r.ticker} className="border-b border-[#efece2] transition hover:bg-[#f7f6f1] last:border-0">
+                      <tr key={`${r.sourceMarket}-${r.ticker}`} className="border-b border-[var(--border-faint)] transition hover:bg-[var(--fill-subtle)] last:border-0">
                         <td className="px-4 py-2.5">
-                          <button
-                            onClick={() => onOpenDetail(r.ticker, r.name ?? r.ticker)}
-                            className="text-left font-semibold text-[#1c1b18] hover:text-[#c9962f] hover:underline"
-                          >
-                            {r.name ?? r.ticker}
-                          </button>
-                          <div className="font-mono text-[11px] text-[#6c6656]">{r.ticker}</div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {view === "all" && (
+                              <span
+                                className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white"
+                                style={{ background: MARKET_TAG[r.sourceMarket].color }}
+                              >
+                                {MARKET_TAG[r.sourceMarket].label}
+                              </span>
+                            )}
+                            <button
+                              onClick={() => onOpenDetail(r.ticker, r.name ?? r.ticker)}
+                              className="text-left font-semibold text-[var(--foreground)] hover:text-[var(--accent)] hover:underline"
+                            >
+                              {r.name ?? r.ticker}
+                            </button>
+                            {isCommitteeRecommended(r) && (
+                              <span
+                                className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-[var(--accent)]/15 px-1.5 py-0.5 text-[9px] font-bold text-[var(--accent-hover)]"
+                                title={`投資委員会 ${r.committeeAgree}/${r.committeeTotal}役が賛成(基準60%以上)`}
+                              >
+                                <Gavel size={9} strokeWidth={2.5} />
+                                委員会推奨 {r.committeeAgree}/{r.committeeTotal}
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-mono text-[11px] text-[var(--text-secondary)]">{r.ticker}</div>
                         </td>
-                        <td className="px-3 py-2.5 text-right tabular-nums text-[15px] text-[#1c1b18]">
+                        <td className="px-3 py-2.5 text-right tabular-nums text-[15px] text-[var(--foreground)]">
                           {r.price != null ? `${currencyPrefix}${r.price.toLocaleString("ja-JP")}` : "—"}
                         </td>
                         <td className="px-3 py-2.5 text-right tabular-nums text-[15px] font-semibold" style={{ color: r.dayChangePercent == null ? GLASS_TEXT2 : up ? GLASS_UP : GLASS_DOWN }}>
@@ -293,8 +400,8 @@ export function DailyPicksTab({
           </>
         )}
 
-        <p className="mt-3 text-xs text-[#a39d8c]">
-          総合評価はミネルヴィニ/CANSLIM/財務健全性/委員会合議スコアの単純平均(0-100、S/A/B/C/Dの5段階)です。ホバーすると内訳が見られます。RSはベンチマークに対する6ヶ月相対力を、その日のスキャン対象全体の中でパーセンタイル順位に変換したもの(0-100、高いほど強い)です。各スコア自体も簡易ルールベースの計算です。投資助言ではなく、参考情報としてご利用ください。
+        <p className="mt-3 text-xs text-[var(--text-muted)]">
+          総合評価はミネルヴィニ/CANSLIM/財務健全性/委員会合議スコアの単純平均(0-100、S/A/B/C/Dの5段階)です。ホバーすると内訳が見られます。銘柄名の「委員会推奨」バッジは、投資委員会5役(ファンダメンタル/テクニカル/センチメント/リスク管理/マクロ)のうち60%以上が賛成している銘柄に付きます。RSはベンチマークに対する6ヶ月相対力を、その日のスキャン対象全体の中でパーセンタイル順位に変換したもの(0-100、高いほど強い)です。「全体」表示ではRSを日本株・米国株を合わせた母集団で計算し直しています。各スコア自体も簡易ルールベースの計算です。投資助言ではなく、参考情報としてご利用ください。
         </p>
       </GlassPageShell>
     </section>

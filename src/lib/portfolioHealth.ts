@@ -1,6 +1,8 @@
 // ポートフォリオアドバイザー: 銘柄の売買判断ではなく、資産配分の健全性(現金比率・
 // セクター/通貨/銘柄の集中度)を毎回チェックする。純粋関数化してPortfolioTab.tsxから使う。
 
+import { sectorLabelJa } from "./sectorLabels";
+
 export type HealthLevel = "good" | "watch" | "warning";
 
 export interface HealthItem {
@@ -43,9 +45,9 @@ export function computePortfolioHealth(
   // セクター集中度
   const topSector = sectorBreakdown[0];
   if (topSector && topSector.pct >= 40) {
-    items.push({ level: "warning", message: `「${topSector.sector}」セクターが評価額の${topSector.pct.toFixed(0)}%を占め、集中しすぎています。` });
+    items.push({ level: "warning", message: `「${sectorLabelJa(topSector.sector)}」セクターが評価額の${topSector.pct.toFixed(0)}%を占め、集中しすぎています。` });
   } else if (topSector && topSector.pct >= 30) {
-    items.push({ level: "watch", message: `「${topSector.sector}」セクターが評価額の${topSector.pct.toFixed(0)}%とやや偏っています。` });
+    items.push({ level: "watch", message: `「${sectorLabelJa(topSector.sector)}」セクターが評価額の${topSector.pct.toFixed(0)}%とやや偏っています。` });
   }
 
   // 通貨集中度

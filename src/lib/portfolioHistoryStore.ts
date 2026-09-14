@@ -1,9 +1,9 @@
 "use client";
 
-// ポートフォリオの評価額推移(円換算)を日次で記録する。このブラウザのlocalStorageにのみ保存する。
-// アプリを開くたびに「今日の評価額」を上書き保存していく方式。
+// ポートフォリオの評価額推移(円換算)を日次で記録する。Upstash Redis設定時はブラウザ/端末間で
+// 同期する。アプリを開くたびに「今日の評価額」を上書き保存していく方式。
 
-import { loadLocal, saveLocal } from "./localStore";
+import { loadSynced, saveSynced } from "./localStore";
 
 export interface PortfolioSnapshot {
   date: string; // YYYY-MM-DD
@@ -15,13 +15,13 @@ const KEY = "stockapp.portfolioHistory.v1";
 const MAX_ENTRIES = 365;
 
 async function readAll(): Promise<PortfolioSnapshot[]> {
-  const value = await loadLocal<PortfolioSnapshot[]>(KEY, []);
+  const value = await loadSynced<PortfolioSnapshot[]>(KEY, "portfolio-history", []);
   if (!Array.isArray(value)) return [];
   return value.map((s) => ({ ...s, cashJpy: s.cashJpy ?? 0 }));
 }
 
 async function writeAll(list: PortfolioSnapshot[]): Promise<void> {
-  await saveLocal(KEY, list);
+  await saveSynced(KEY, "portfolio-history", list);
 }
 
 export async function getHistory(): Promise<PortfolioSnapshot[]> {

@@ -34,14 +34,14 @@ export function StatTile({
 
   if (variant === "hero") {
     return (
-      <Tag onClick={onClick} className={`rounded-[18px] p-6 ${interactive}`} style={{ background: GLASS_HERO }}>
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
-            <Icon size={18} strokeWidth={2.25} className="text-white" />
+      <Tag onClick={onClick} className={`rounded-[18px] p-5 ${interactive}`} style={{ background: GLASS_HERO }}>
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20">
+            <Icon size={16} strokeWidth={2.25} className="text-white" />
           </span>
           <div className="min-w-0">
             <div className="text-xs text-white/80">{label}</div>
-            <div className="mt-0.5 truncate text-2xl font-bold tabular-nums text-white">{value}</div>
+            <div className="mt-0.5 truncate text-xl font-bold tabular-nums text-white">{value}</div>
           </div>
         </div>
         {delta && <div className="mt-2 text-sm font-semibold tabular-nums text-white/90">{delta.text}</div>}
@@ -52,16 +52,16 @@ export function StatTile({
 
   return (
     <Tag onClick={onClick} className={`${GLASS_CARD} ${interactive}`}>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
           style={{ background: `${iconColor}1f` }}
         >
-          <Icon size={18} strokeWidth={2.25} style={{ color: iconColor }} />
+          <Icon size={16} strokeWidth={2.25} style={{ color: iconColor }} />
         </span>
         <div className="min-w-0">
-          <div className="text-xs text-[#6c6656]">{label}</div>
-          <div className="mt-0.5 truncate text-2xl font-bold tabular-nums text-[#1c1b18]">{value}</div>
+          <div className="text-xs text-[var(--text-secondary)]">{label}</div>
+          <div className="mt-0.5 truncate text-xl font-bold tabular-nums text-[var(--foreground)]">{value}</div>
         </div>
       </div>
       {delta && (

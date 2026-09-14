@@ -30,7 +30,7 @@ function breakdownColor(value: number | null, total: number | null): string {
   if (value == null || !total) return "#8a8368";
   const ratio = value / total;
   if (ratio >= 0.8) return "#e0b876";
-  if (ratio >= 0.6) return "#7dd3ae";
+  if (ratio >= 0.6) return "var(--status-good-soft)";
   return "#c9c2ab";
 }
 
@@ -50,7 +50,7 @@ export function OverallScoreBadge({ score, grade, breakdown }: { score: number; 
   return (
     <span className="group relative inline-flex cursor-help items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold" style={{ background: `${color}1f`, color }}>
       {grade}
-      <span className="font-mono font-normal text-[#6c6656]">{score}</span>
+      <span className="font-mono font-normal text-[var(--text-secondary)]">{score}</span>
       <div className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 hidden w-52 rounded-lg bg-[#1c1b18] p-2.5 text-left text-[10.5px] font-normal normal-case shadow-lg group-hover:block">
         <BreakdownRow label="ミネルヴィニ" value={breakdown.minerviniScore} total={MINERVINI_TOTAL} />
         <BreakdownRow label="CANSLIM" value={breakdown.canslimScore} total={CANSLIM_TOTAL} />
@@ -62,7 +62,7 @@ export function OverallScoreBadge({ score, grade, breakdown }: { score: number; 
             {ROLE_ORDER.map((role) => {
               const pass = breakdown.committeeRoles![role];
               return (
-                <div key={role} className="flex items-center gap-1.5 py-0.5" style={{ color: pass ? "#7dd3ae" : "#e0a8a3" }}>
+                <div key={role} className="flex items-center gap-1.5 py-0.5" style={{ color: pass ? "var(--status-good-soft)" : "var(--status-bad-soft)" }}>
                   {pass ? "✓" : "✕"} {ROLE_LABEL[role]}
                 </div>
               );

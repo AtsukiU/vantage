@@ -2,7 +2,7 @@
 
 import { computeTrailingStopHint } from "@/lib/trailingStop";
 
-const DOWN = "#2f6fb0";
+const DOWN = "var(--price-down)";
 
 function fmt(n: number, currency: string): string {
   const prefix = currency === "JPY" ? "¥" : currency === "USD" ? "$" : "";
@@ -28,7 +28,7 @@ export function TrailingStopBadge({
   if (!hint) return null;
 
   return (
-    <div className="mt-0.5 text-[10.5px]" style={{ color: hint.belowMa50 ? DOWN : "#a39d8c" }}>
+    <div className="mt-0.5 text-[10.5px]" style={{ color: hint.belowMa50 ? DOWN : "var(--text-muted)" }}>
       {hint.belowMa50 ? "50日線を割れています" : `利確目安 50日線${fmt(hint.ma50Price, currency)}`}
     </div>
   );

@@ -28,7 +28,7 @@ const QUICK_LINKS: { label: string; symbol: string; name: string; icon: LucideIc
 
 export function StockTab({ hidden, selection, onSelectionChange }: StockTabProps) {
   return (
-    <section hidden={hidden}>
+    <section hidden={hidden} className="h-full">
       <GlassPageShell>
         <StockSearchBar onSelect={(symbol, name) => onSelectionChange({ symbol, name })} />
 
@@ -37,7 +37,7 @@ export function StockTab({ hidden, selection, onSelectionChange }: StockTabProps
             <button
               key={q.symbol}
               onClick={() => onSelectionChange({ symbol: q.symbol, name: q.name })}
-              className="flex items-center gap-1.5 rounded-full border border-[#e2dfd2] bg-white/70 px-3 py-1 text-xs text-[#6c6656] transition hover:border-[#c9962f]/40 hover:text-[#c9962f]"
+              className="flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-white/70 px-3 py-1 text-xs text-[var(--text-secondary)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
             >
               <q.icon size={13} strokeWidth={2.25} />
               {q.label}
@@ -53,7 +53,7 @@ export function StockTab({ hidden, selection, onSelectionChange }: StockTabProps
             onOpenDetail={(symbol, name) => onSelectionChange({ symbol, name })}
           />
         ) : (
-          <div className="rounded-[18px] border border-dashed border-[#e2dfd2] bg-white/60 p-10 text-center text-[13px] text-[#6c6656]">
+          <div className="rounded-[18px] border border-dashed border-[var(--border-subtle)] bg-white/60 p-10 text-center text-[13px] text-[var(--text-secondary)]">
             ティッカーまたは銘柄名で検索してください(例: 7203.T、トヨタ、AAPL、または上のコモディティ)
           </div>
         )}

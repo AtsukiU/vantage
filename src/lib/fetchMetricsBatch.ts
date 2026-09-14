@@ -2,7 +2,7 @@
 
 import type { StockMetrics } from "./stockMetrics";
 
-// スクリーニング・ポートフォリオ・シミュレーターなど、複数銘柄の現在値をまとめて
+// スクリーニング・ポートフォリオなど、複数銘柄の現在値をまとめて
 // 取りたい画面向けの共通ヘルパー。/api/stock/[ticker]/metrics を並列(上限付き)で叩く。
 // stock-analyzer の fetch_all() が ThreadPoolExecutor で並列取得していたのと同じ考え方。
 export async function fetchMetricsBatch(

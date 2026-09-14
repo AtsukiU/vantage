@@ -7,6 +7,8 @@ import { ArrowLeftRight } from "lucide-react";
 
 const REFRESH_MS = 5 * 60 * 1000;
 
+// 白文字を乗せる前提の固定バッジ色なので、ダークモードでも変えない
+// (TICKER_CATEGORY_COLOR・HEALTH_COLORと同じ理由)。
 const PHASE_COLOR: Record<FxPhase, string> = {
   円安進行中: "#c0392b",
   円安基調: "#c0392b",
@@ -50,10 +52,10 @@ export function FxOutlookCard() {
     return (
       <div className={`${GLASS_CARD} mb-4`}>
         <div className="flex items-center gap-2">
-          <ArrowLeftRight size={15} strokeWidth={2.25} className="text-[#c9962f]" />
-          <h2 className="text-[13px] font-extrabold text-[#1c1b18]">為替観測(円安/円高)</h2>
+          <ArrowLeftRight size={15} strokeWidth={2.25} className="text-[var(--accent)]" />
+          <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">為替観測(円安/円高)</h2>
         </div>
-        <p className="mt-2 text-xs text-[#6c6656]">読み込み中…</p>
+        <p className="mt-2 text-xs text-[var(--text-secondary)]">読み込み中…</p>
       </div>
     );
   }
@@ -65,8 +67,8 @@ export function FxOutlookCard() {
     <div className={`${GLASS_CARD} mb-4`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <ArrowLeftRight size={15} strokeWidth={2.25} className="text-[#c9962f]" />
-          <h2 className="text-[13px] font-extrabold text-[#1c1b18]">為替観測(円安/円高)</h2>
+          <ArrowLeftRight size={15} strokeWidth={2.25} className="text-[var(--accent)]" />
+          <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">為替観測(円安/円高)</h2>
         </div>
         <span className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ backgroundColor: color }}>
           {outlook.phase}
@@ -74,14 +76,14 @@ export function FxOutlookCard() {
       </div>
 
       <div className="mt-2.5 flex flex-wrap items-baseline gap-2">
-        <span className="text-[20px] font-extrabold tabular-nums text-[#1c1b18]">¥{outlook.usdJpy.toFixed(2)}</span>
-        <span className="text-xs text-[#6c6656]">/ドル</span>
-        <span className={`text-xs font-semibold tabular-nums ${up ? "text-[#c0392b]" : "text-[#2f6fb0]"}`}>
+        <span className="text-[22px] font-extrabold tabular-nums text-[var(--foreground)]">¥{outlook.usdJpy.toFixed(2)}</span>
+        <span className="text-xs text-[var(--text-secondary)]">/ドル</span>
+        <span className={`text-xs font-semibold tabular-nums ${up ? "text-[var(--price-up)]" : "text-[var(--price-down)]"}`}>
           {up ? "▲" : "▼"} {Math.abs(outlook.changePercent).toFixed(2)}%(前日比)
         </span>
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#6c6656]">
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[var(--text-secondary)]">
         {outlook.vsMa50Pct != null && (
           <span>
             50日線比 {outlook.vsMa50Pct >= 0 ? "+" : ""}
@@ -102,17 +104,17 @@ export function FxOutlookCard() {
         )}
       </div>
 
-      <div className="mt-3 rounded-[12px] bg-[#f7f6f1] p-3">
-        <p className="text-[12px] font-bold text-[#1c1b18]">
+      <div className="mt-3 rounded-[12px] bg-[var(--fill-subtle)] p-3">
+        <p className="text-[12.5px] font-bold text-[var(--foreground)]">
           新規に買うなら: <span style={{ color }}>{outlook.lean}</span>
         </p>
-        <ul className="mt-1.5 space-y-0.5 text-[11px] text-[#6c6656]">
+        <ul className="mt-1.5 space-y-0.5 text-[11px] text-[var(--text-secondary)]">
           {outlook.reasoning.map((r) => (
             <li key={r}>・{r}</li>
           ))}
         </ul>
       </div>
-      <p className="mt-2 text-[10px] text-[#a39d8c]">為替の方向性だけを見た参考情報です。個別銘柄の業績・バリュエーションと合わせて判断してください。</p>
+      <p className="mt-2 text-[10.5px] text-[var(--text-muted)]">為替の方向性だけを見た参考情報です。個別銘柄の業績・バリュエーションと合わせて判断してください。</p>
     </div>
   );
 }

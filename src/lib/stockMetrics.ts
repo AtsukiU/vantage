@@ -1,5 +1,10 @@
 import { getYahooAuth } from "./yahooAuth";
+import { cachedFundamental } from "./fundamentalsCache";
 import type { CommitteeVerdict } from "./committeeScore";
+
+// 自己資本比率・配当成長年数は四半期〜年単位でしか実質的に変わらないため、3日間は
+// ディスクキャッシュを使い回す(本日の注目銘柄フルスキャンでの重複問い合わせを削減する)。
+const FUNDAMENTALS_CACHE_TTL_MS = 3 * 24 * 60 * 60 * 1000;
 
 export interface StockMetrics {
   ticker: string;
@@ -211,6 +216,10 @@ async function fetchQuoteSummary(ticker: string): Promise<QuoteSummaryResult | n
 // balanceSheetHistory(quoteSummary)は現在エンドデートのみで財務データを返さなくなっているため、
 // yfinance等と同じく ws/fundamentals-timeseries から直近期の総資産・自己資本を取得する。
 async function fetchEquityRatio(ticker: string): Promise<number | null> {
+  return cachedFundamental(`equityRatio:${ticker}`, FUNDAMENTALS_CACHE_TTL_MS, () => fetchEquityRatioUncached(ticker));
+}
+
+async function fetchEquityRatioUncached(ticker: string): Promise<number | null> {
   const period2 = Math.floor(Date.now() / 1000);
   const period1 = period2 - 3 * 365 * 24 * 3600;
 
@@ -242,6 +251,12 @@ async function fetchEquityRatio(ticker: string): Promise<number | null> {
 // 配当履歴から暦年ごとの合計配当を集計し、直近の完了年から遡って連続増配した年数を数える
 // (stock-analyzer/src/screener.py の _dividend_growth_years と同じ簡易ロジック)。
 async function fetchDividendGrowthYears(ticker: string): Promise<number | null> {
+  return cachedFundamental(`dividendGrowthYears:${ticker}`, FUNDAMENTALS_CACHE_TTL_MS, () =>
+    fetchDividendGrowthYearsUncached(ticker)
+  );
+}
+
+async function fetchDividendGrowthYearsUncached(ticker: string): Promise<number | null> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
     ticker
   )}?range=10y&interval=3mo&events=div`;
@@ -451,6 +466,6 @@ export function marketRegion(metrics: Pick<StockMetrics, "currency" | "ticker">)
 // 自己資本比率が構造的に低くなる(メガバンクでも数%台が普通)。一般事業会社向けの
 // 「自己資本比率は高いほど健全」という閾値をそのまま当てはめると誤診断になるため、
 // 自己資本比率に基づく判定(ゲージ・良い点/懸念点・財務健全性スコア)から除外する。
-export function isFinancialSector(sector: string | null): boolean {
-  return sector === "Financial Services";
-}
+// isFinancialSectorはクライアントコンポーネントからも直接importできるよう
+// stockMetricsShared.tsに定義してあり、ここでは既存の呼び出し元向けに再exportするだけ。
+export { isFinancialSector } from "./stockMetricsShared";

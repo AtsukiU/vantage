@@ -57,14 +57,14 @@ export function PriceChart({ points, range, onRangeChange }: PriceChartProps) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-[13px] font-extrabold text-[#1c1b18]">株価推移</h3>
-        <div className="flex gap-[3px] rounded-full bg-[#f0efe6] p-[3px]">
+        <h3 className="text-[13px] font-extrabold text-[var(--foreground)]">株価推移</h3>
+        <div className="flex gap-[3px] rounded-full bg-[var(--fill-pill)] p-[3px]">
           {RANGES.map((r) => (
             <button
               key={r.key}
               onClick={() => onRangeChange(r.key)}
               className={`rounded-full px-[11px] py-[5px] text-[11px] font-semibold transition ${
-                range === r.key ? "bg-white text-[#1c1b18] shadow-sm" : "text-[#6c6656]"
+                range === r.key ? "bg-[var(--surface)] text-[var(--foreground)] shadow-sm" : "text-[var(--text-secondary)]"
               }`}
             >
               {r.label}
@@ -90,33 +90,33 @@ export function PriceChart({ points, range, onRangeChange }: PriceChartProps) {
                 />
               );
             })}
-            <polygon points={areaPath} fill="#c9962f" opacity={0.1} />
+            <polygon points={areaPath} fill="var(--accent)" opacity={0.1} />
             {ma200Path && (
-              <polyline points={ma200Path} fill="none" stroke="#2f6fb0" strokeWidth={1} opacity={0.55} />
+              <polyline points={ma200Path} fill="none" stroke="var(--price-down)" strokeWidth={1} opacity={0.55} />
             )}
             {ma50Path && (
-              <polyline points={ma50Path} fill="none" stroke="#c0392b" strokeWidth={1} opacity={0.55} />
+              <polyline points={ma50Path} fill="none" stroke="var(--price-up)" strokeWidth={1} opacity={0.55} />
             )}
-            <polyline points={pricePath} fill="none" stroke="#c9962f" strokeWidth={2} />
+            <polyline points={pricePath} fill="none" stroke="var(--accent)" strokeWidth={2} />
           </svg>
         ) : (
-          <div className="flex h-full items-center justify-center text-[12.5px] text-[#6c6656]">
+          <div className="flex h-full items-center justify-center text-[12.5px] text-[var(--text-secondary)]">
             チャートデータがありません
           </div>
         )}
       </div>
 
-      <div className="mt-2 flex gap-4 text-[11px] text-[#6c6656]">
+      <div className="mt-2 flex gap-4 text-[11px] text-[var(--text-secondary)]">
         <span>
-          <span className="mr-1 inline-block h-[2px] w-2 align-middle bg-[#c9962f]" />
+          <span className="mr-1 inline-block h-[2px] w-2 align-middle bg-[var(--accent)]" />
           終値
         </span>
         <span>
-          <span className="mr-1 inline-block h-[2px] w-2 align-middle bg-[#c0392b]" />
+          <span className="mr-1 inline-block h-[2px] w-2 align-middle bg-[var(--price-up)]" />
           50日線
         </span>
         <span>
-          <span className="mr-1 inline-block h-[2px] w-2 align-middle bg-[#2f6fb0]" />
+          <span className="mr-1 inline-block h-[2px] w-2 align-middle bg-[var(--price-down)]" />
           200日線
         </span>
       </div>

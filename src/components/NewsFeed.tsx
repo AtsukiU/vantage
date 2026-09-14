@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import type { NewsItem } from "@/lib/news";
 import type { Market } from "@/lib/feeds";
 import { relativeTimeJa, formatClock } from "@/lib/format";
 import { categorizeNewsTitle, NEWS_CATEGORY_LABEL, NEWS_CATEGORY_COLOR, type NewsCategory } from "@/lib/newsCategory";
 import { translateUnique } from "@/lib/translateClient";
+import { NewsPreviewModal } from "./NewsPreviewModal";
 
 interface ApiResponse {
   market: Market;
@@ -52,6 +54,7 @@ export function NewsFeed({
   // 米国株ニュースは英語のため、タイトル・概要を日本語に一括翻訳したもの(原文→訳文)。
   // 銘柄名・企業名などの固有名詞はAPI側で無理に訳さない前提。翻訳できない場合は原文のまま。
   const [translations, setTranslations] = useState<Map<string, string>>(new Map());
+  const [previewItem, setPreviewItem] = useState<NewsItem | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -133,7 +136,7 @@ export function NewsFeed({
 
   return (
     <section hidden={hidden} className="flex flex-col gap-4">
-      <div className="flex items-center justify-between text-sm text-[#6c6656]">
+      <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
         <span>
           {data
             ? `更新: ${relativeTimeJa(data.updatedAt)} (${formatClock(
@@ -144,7 +147,7 @@ export function NewsFeed({
         <button
           onClick={load}
           disabled={loading}
-          className="rounded-full border border-[#e2dfd2] px-3 py-1 text-xs font-medium text-[#6c6656] hover:bg-white disabled:opacity-50"
+          className="rounded-full border border-[var(--border-subtle)] px-3 py-1 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--surface)] disabled:opacity-50"
         >
           {loading ? "更新中..." : "更新"}
         </button>
@@ -155,7 +158,7 @@ export function NewsFeed({
           <button
             onClick={() => setCategoryFilter("all")}
             className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition ${
-              categoryFilter === "all" ? "bg-[#c9962f] text-white" : "bg-[#f0efe6] text-[#6c6656] hover:text-[#1c1b18]"
+              categoryFilter === "all" ? "bg-[var(--accent)] text-white" : "bg-[var(--fill-pill)] text-[var(--text-secondary)] hover:text-[var(--foreground)]"
             }`}
           >
             すべて({categorized.length})
@@ -165,7 +168,7 @@ export function NewsFeed({
               key={cat}
               onClick={() => setCategoryFilter(cat)}
               className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition ${
-                categoryFilter === cat ? "bg-[#c9962f] text-white" : "bg-[#f0efe6] text-[#6c6656] hover:text-[#1c1b18]"
+                categoryFilter === cat ? "bg-[var(--accent)] text-white" : "bg-[var(--fill-pill)] text-[var(--text-secondary)] hover:text-[var(--foreground)]"
               }`}
             >
               {NEWS_CATEGORY_LABEL[cat]}({counts[cat]})
@@ -191,14 +194,14 @@ export function NewsFeed({
           {Array.from({ length: 6 }).map((_, i) => (
             <li
               key={i}
-              className="h-24 animate-pulse rounded-xl bg-[#efece2]"
+              className="h-24 animate-pulse rounded-xl bg-[var(--border-faint)]"
             />
           ))}
         </ul>
       )}
 
       {data && data.items.length === 0 && !loading && (
-        <div className="rounded-xl border border-dashed border-[#e2dfd2] px-4 py-10 text-center text-sm text-[#6c6656]">
+        <div className="rounded-xl border border-dashed border-[var(--border-subtle)] px-4 py-10 text-center text-sm text-[var(--text-secondary)]">
           直近24時間のニュースが見つかりませんでした。
         </div>
       )}
@@ -206,18 +209,16 @@ export function NewsFeed({
       {/* 「すべて」表示: マガジン風レイアウト(hero + strip + 残りグリッド + 相場ボード折りたたみ) */}
       {data && categoryFilter === "all" && heroEntry && (
         <div className="flex flex-col gap-4">
-          <a
-            href={heroEntry.item.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative overflow-hidden rounded-[18px] bg-[#1c1b18] px-6 py-6 sm:px-8 sm:py-7"
+          <button
+            onClick={() => setPreviewItem(heroEntry.item)}
+            className="group relative overflow-hidden rounded-[18px] border border-white/10 bg-[#1c1b18] px-6 py-6 text-left shadow-[0_1px_2px_rgba(28,27,24,0.04),0_10px_24px_-8px_rgba(28,27,24,0.14)] transition hover:border-[var(--accent)]/50 sm:px-8 sm:py-7"
           >
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#c9962f] opacity-30 blur-[70px]" />
-              <div className="absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-[#cf9a4c] opacity-25 blur-[60px]" />
+              <div className="glow-blob absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[var(--accent)] opacity-30 blur-[70px]" />
+              <div className="glow-blob absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-[var(--accent-strong)] opacity-25 blur-[60px]" />
             </div>
             <div className="relative">
-              <span className="inline-block rounded-full bg-[#cf9a4c] px-2.5 py-1 text-[10px] font-bold text-[#1c1b18]">
+              <span className="inline-block rounded-full bg-[var(--accent-strong)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--foreground)]">
                 {NEWS_CATEGORY_LABEL[heroEntry.category]}
               </span>
               <h3 className="mt-3 max-w-2xl text-[19px] font-extrabold leading-snug text-white sm:text-[22px]">
@@ -226,34 +227,32 @@ export function NewsFeed({
               {heroEntry.item.description && (
                 <p className="mt-2 max-w-2xl text-[12.5px] leading-relaxed text-white/70">{tr(heroEntry.item.description)}</p>
               )}
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-[11.5px] text-white/60">
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-white/60">
                 <span>{heroEntry.item.source}</span>
                 <span title={formatClock(heroEntry.item.pubDate)}>{relativeTimeJa(heroEntry.item.pubDate)}</span>
               </div>
             </div>
-          </a>
+          </button>
 
           {stripEntries.length > 0 && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {stripEntries.map(({ item, category }, i) => (
-                <a
+                <button
                   key={item.link}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative flex flex-col overflow-hidden rounded-[14px] bg-[#1c1b18] px-4 py-3.5"
+                  onClick={() => setPreviewItem(item)}
+                  className="group relative flex flex-col overflow-hidden rounded-[14px] border border-white/10 bg-[#1c1b18] px-4 py-3.5 text-left transition hover:border-[var(--accent)]/50"
                 >
                   <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-70 transition group-hover:opacity-100">
-                    <div className="absolute -right-8 -top-10 h-24 w-24 rounded-full bg-[#c9962f] opacity-40 blur-[36px]" />
-                    <div className="absolute -bottom-8 -left-6 h-20 w-20 rounded-full bg-[#cf9a4c] opacity-30 blur-[30px]" />
+                    <div className="glow-blob absolute -right-8 -top-10 h-24 w-24 rounded-full bg-[var(--accent)] opacity-40 blur-[36px]" />
+                    <div className="glow-blob absolute -bottom-8 -left-6 h-20 w-20 rounded-full bg-[var(--accent-strong)] opacity-30 blur-[30px]" />
                   </div>
                   <div className="relative">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#cf9a4c] font-mono text-[10px] font-bold text-[#1c1b18]">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent-strong)] font-mono text-[10.5px] font-bold text-[var(--foreground)]">
                       {i + 1}
                     </span>
-                    <p className="mt-2 text-[14.5px] font-bold leading-snug text-white">{tr(item.title)}</p>
+                    <p className="mt-2 text-[15px] font-bold leading-snug text-white">{tr(item.title)}</p>
                     {item.description && (
-                      <p className="mt-1.5 text-[11.5px] leading-relaxed text-white/60">{tr(item.description)}</p>
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-white/60">{tr(item.description)}</p>
                     )}
                     <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[10.5px] text-white/50">
                       <span className="rounded-full bg-white/10 px-1.5 py-0.5 font-medium text-white/80">
@@ -262,7 +261,7 @@ export function NewsFeed({
                       <span title={formatClock(item.pubDate)}>{relativeTimeJa(item.pubDate)}</span>
                     </div>
                   </div>
-                </a>
+                </button>
               ))}
             </div>
           )}
@@ -271,46 +270,42 @@ export function NewsFeed({
             <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {restEntries.map(({ item, category }) => (
                 <li key={item.link}>
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex h-full flex-col rounded-[14px] border border-[#e2dfd2] bg-white/85 px-4 py-3 transition hover:border-[#c9962f]/40 hover:bg-white"
+                  <button
+                    onClick={() => setPreviewItem(item)}
+                    className="group flex h-full w-full flex-col rounded-[14px] border border-[var(--border-subtle)] bg-[var(--card-bg)] px-4 py-3 text-left backdrop-blur-[var(--card-blur)] transition hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
                   >
-                    <p className="font-medium leading-snug text-[#1c1b18] group-hover:text-[#c9962f]">{tr(item.title)}</p>
+                    <p className="font-medium leading-snug text-[var(--foreground)] group-hover:text-[var(--accent)]">{tr(item.title)}</p>
                     {item.description && (
-                      <p className="mt-1 text-[11px] leading-relaxed text-[#a39d8c]">{tr(item.description)}</p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">{tr(item.description)}</p>
                     )}
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#6c6656]">
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
                       <span className={`rounded-full px-2 py-0.5 font-medium ${NEWS_CATEGORY_COLOR[category]}`}>
                         {NEWS_CATEGORY_LABEL[category]}
                       </span>
                       <span className={`rounded-full px-2 py-0.5 font-medium ${sourceColor(item.source)}`}>{item.source}</span>
                       <span title={formatClock(item.pubDate)}>{relativeTimeJa(item.pubDate)}</span>
                     </div>
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
           )}
 
           {quoteEntries.length > 0 && (
-            <details className="rounded-[14px] border border-[#e2dfd2] bg-white/70">
-              <summary className="cursor-pointer select-none list-none px-4 py-2.5 text-xs font-semibold text-[#6c6656]">
+            <details className="rounded-[14px] border border-[var(--border-subtle)] bg-[var(--card-bg)] backdrop-blur-[var(--card-blur)]">
+              <summary className="cursor-pointer select-none list-none px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)]">
                 銘柄・ファンド情報(株価ボード)を{quoteEntries.length}件表示
               </summary>
-              <div className="border-t border-[#e2dfd2]">
+              <div className="border-t border-[var(--border-subtle)]">
                 {quoteEntries.map(({ item }) => (
-                  <a
+                  <button
                     key={item.link}
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 border-b border-[#f0efe6] px-4 py-2 text-[12.5px] last:border-none hover:bg-[#f7f6f1]"
+                    onClick={() => setPreviewItem(item)}
+                    className="flex w-full items-center gap-3 border-b border-[var(--fill-pill)] px-4 py-2 text-left text-[12.5px] last:border-none hover:bg-[var(--fill-subtle)]"
                   >
-                    <span className="min-w-0 flex-1 truncate text-[#1c1b18]">{tr(item.title)}</span>
-                    <span className="shrink-0 text-[10.5px] text-[#a39d8c]">{relativeTimeJa(item.pubDate)}</span>
-                  </a>
+                    <span className="min-w-0 flex-1 truncate text-[var(--foreground)]">{tr(item.title)}</span>
+                    <span className="shrink-0 text-[10.5px] text-[var(--text-muted)]">{relativeTimeJa(item.pubDate)}</span>
+                  </button>
                 ))}
               </div>
             </details>
@@ -323,19 +318,17 @@ export function NewsFeed({
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {visible.map(({ item, category }) => (
             <li key={item.link}>
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex h-full flex-col rounded-[14px] border border-[#e2dfd2] bg-white/85 px-4 py-3 transition hover:border-[#c9962f]/40 hover:bg-white"
+              <button
+                onClick={() => setPreviewItem(item)}
+                className="group flex h-full w-full flex-col rounded-[14px] border border-[var(--border-subtle)] bg-[var(--card-bg)] px-4 py-3 text-left backdrop-blur-[var(--card-blur)] transition hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
               >
-                <p className="font-medium leading-snug text-[#1c1b18] group-hover:text-[#c9962f]">
+                <p className="font-medium leading-snug text-[var(--foreground)] group-hover:text-[var(--accent)]">
                   {tr(item.title)}
                 </p>
                 {item.description && (
-                  <p className="mt-1 text-[11px] leading-relaxed text-[#a39d8c]">{tr(item.description)}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">{tr(item.description)}</p>
                 )}
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#6c6656]">
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
                   <span className={`rounded-full px-2 py-0.5 font-medium ${NEWS_CATEGORY_COLOR[category]}`}>
                     {NEWS_CATEGORY_LABEL[category]}
                   </span>
@@ -350,17 +343,29 @@ export function NewsFeed({
                     {relativeTimeJa(item.pubDate)}
                   </span>
                 </div>
-              </a>
+              </button>
             </li>
           ))}
         </ul>
       )}
 
       {data && data.items.length > 0 && visible.length === 0 && (
-        <div className="rounded-xl border border-dashed border-[#e2dfd2] px-4 py-10 text-center text-sm text-[#6c6656]">
+        <div className="rounded-xl border border-dashed border-[var(--border-subtle)] px-4 py-10 text-center text-sm text-[var(--text-secondary)]">
           このカテゴリのニュースはありません。
         </div>
       )}
+
+      <AnimatePresence>
+        {previewItem && (
+          <NewsPreviewModal
+            key={previewItem.link}
+            item={previewItem}
+            title={tr(previewItem.title)}
+            description={previewItem.description ? tr(previewItem.description) : null}
+            onClose={() => setPreviewItem(null)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

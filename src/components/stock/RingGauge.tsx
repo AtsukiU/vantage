@@ -24,7 +24,7 @@ export function RingGauge({
 }: RingGaugeProps) {
   const pct = percent ?? 0;
   const offset = CIRC * (1 - pct / 100);
-  const ringColor = good ? "#2f9e5c" : "#c9962f";
+  const ringColor = good ? "var(--status-good)" : "var(--accent)";
   const trackColor = good ? "rgba(47,158,92,.15)" : "rgba(201,150,47,.15)";
 
   return (
@@ -61,11 +61,11 @@ export function RingGauge({
       </div>
       <div
         className="mt-2 text-[10.5px] font-bold"
-        style={{ color: good ? ringColor : "#1c1b18" }}
+        style={{ color: good ? ringColor : "var(--foreground)" }}
       >
         {label}
       </div>
-      <div className="font-mono text-[9.5px] text-[#6c6656] tabular-nums">{valueText}</div>
+      <div className="font-mono text-[9px] text-[var(--text-secondary)] tabular-nums">{valueText}</div>
 
       <div
         className="pointer-events-none absolute left-1/2 bottom-[calc(100%+10px)] z-30 w-52 -translate-x-1/2 translate-y-1
@@ -73,9 +73,9 @@ export function RingGauge({
           opacity-0 shadow-lg transition-all duration-150
           group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100"
       >
-        <b className="mb-1 block text-[11.5px] font-bold text-white">{label}</b>
+        <b className="mb-1 block text-[11px] font-bold text-white">{label}</b>
         {tooltip}
-        <span className="mt-1 block text-[10px] text-[#b8b3a4]">{benchmarkText}</span>
+        <span className="mt-1 block text-[10.5px] text-[#b8b3a4]">{benchmarkText}</span>
         <span className="absolute left-1/2 top-full -translate-x-1/2 border-[6px] border-transparent border-t-[#1c1b18]" />
       </div>
     </div>

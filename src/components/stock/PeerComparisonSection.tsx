@@ -2,9 +2,9 @@
 
 import type { PeerComparison } from "@/lib/stockPeers";
 
-const GOOD = "#2f9e5c";
-const UP = "#c0392b";
-const DOWN = "#2f6fb0";
+const GOOD = "var(--status-good)";
+const UP = "var(--price-up)";
+const DOWN = "var(--price-down)";
 
 function fmtCap(n: number | null, currency: string | null): string {
   if (n == null) return "—";
@@ -17,9 +17,9 @@ function fmtCap(n: number | null, currency: string | null): string {
 
 // 銘柄本体より割安/優秀な値なら緑で強調(PER/PBRは低いほど、ROE/配当利回りは高いほど良い)。
 function cellColor(peerValue: number | null, baseValue: number | null, lowerIsBetter: boolean): string {
-  if (peerValue == null || baseValue == null) return "#1c1b18";
+  if (peerValue == null || baseValue == null) return "var(--foreground)";
   const better = lowerIsBetter ? peerValue < baseValue : peerValue > baseValue;
-  return better ? GOOD : "#1c1b18";
+  return better ? GOOD : "var(--foreground)";
 }
 
 export function PeerComparisonSection({
@@ -32,15 +32,15 @@ export function PeerComparisonSection({
   onOpenDetail: (symbol: string, name: string) => void;
 }) {
   if (peers.length === 0) {
-    return <div className="text-[11.5px] text-[#a39d8c]">類似銘柄のデータが見つかりませんでした</div>;
+    return <div className="text-[11px] text-[var(--text-muted)]">類似銘柄のデータが見つかりませんでした</div>;
   }
 
   return (
     <div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[520px] text-[12px]">
+        <table className="w-full min-w-[520px] text-[12.5px]">
           <thead>
-            <tr className="border-b border-[#e2dfd2] text-left text-[11px] text-[#6c6656]">
+            <tr className="border-b border-[var(--border-subtle)] text-left text-[11px] text-[var(--text-secondary)]">
               <th className="py-2 pr-2 font-medium">銘柄</th>
               <th className="py-2 px-2 text-right font-medium">価格</th>
               <th className="py-2 px-2 text-right font-medium">前日比</th>
@@ -56,22 +56,22 @@ export function PeerComparisonSection({
               const up = (p.dayChangePercent ?? 0) >= 0;
               const currencyPrefix = p.currency === "JPY" ? "¥" : p.currency === "USD" ? "$" : "";
               return (
-                <tr key={p.ticker} className="border-b border-[#efece2] last:border-0">
+                <tr key={p.ticker} className="border-b border-[var(--border-faint)] last:border-0">
                   <td className="py-2 pr-2">
                     <button
                       onClick={() => onOpenDetail(p.ticker, p.name ?? p.ticker)}
-                      className="text-left font-semibold text-[#1c1b18] hover:text-[#c9962f] hover:underline"
+                      className="text-left font-semibold text-[var(--foreground)] hover:text-[var(--accent)] hover:underline"
                     >
                       {p.name ?? p.ticker}
                     </button>
-                    <div className="font-mono text-[10.5px] text-[#6c6656]">{p.ticker}</div>
+                    <div className="font-mono text-[10.5px] text-[var(--text-secondary)]">{p.ticker}</div>
                   </td>
-                  <td className="py-2 px-2 text-right font-mono text-[#1c1b18]">
+                  <td className="py-2 px-2 text-right font-mono text-[var(--foreground)]">
                     {p.price != null
                       ? `${currencyPrefix}${p.price.toLocaleString("ja-JP", { maximumFractionDigits: p.currency === "JPY" ? 0 : 2 })}`
                       : "—"}
                   </td>
-                  <td className="py-2 px-2 text-right font-mono font-semibold" style={{ color: p.dayChangePercent == null ? "#a39d8c" : up ? UP : DOWN }}>
+                  <td className="py-2 px-2 text-right font-mono font-semibold" style={{ color: p.dayChangePercent == null ? "var(--text-muted)" : up ? UP : DOWN }}>
                     {p.dayChangePercent != null ? `${up ? "▲" : "▼"}${p.dayChangePercent.toFixed(2)}%` : "—"}
                   </td>
                   <td className="py-2 px-2 text-right font-mono" style={{ color: cellColor(p.per, baseMetrics.per, true) }}>
@@ -86,14 +86,14 @@ export function PeerComparisonSection({
                   <td className="py-2 px-2 text-right font-mono" style={{ color: cellColor(p.dividendYield, baseMetrics.dividendYield, false) }}>
                     {p.dividendYield != null ? `${p.dividendYield.toFixed(1)}%` : "—"}
                   </td>
-                  <td className="py-2 pl-2 text-right font-mono text-[#6c6656]">{fmtCap(p.marketCap, p.currency)}</td>
+                  <td className="py-2 pl-2 text-right font-mono text-[var(--text-secondary)]">{fmtCap(p.marketCap, p.currency)}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-[10.5px] leading-relaxed text-[#a39d8c]">
+      <p className="mt-2 text-[10.5px] leading-relaxed text-[var(--text-muted)]">
         Yahoo Financeの類似銘柄アルゴリズムによる関連銘柄です(厳密な業種分類ではありません)。緑色は本銘柄よりPER/PBRが低い、またはROE/配当利回りが高いことを示します。
       </p>
     </div>

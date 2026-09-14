@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { getJson, setJson, isKvConfigured } from "./kv";
 import { getPrimeMarketTickers } from "./jpListedDirectory";
 import { getSp500Tickers } from "./usListedDirectory";
 import { computeStockScores } from "./computeStockScores";
@@ -82,6 +83,10 @@ function cacheFilePath(market: ScreenMarket, date: string): string {
   return path.join(CACHE_DIR, `daily-screen-${market}-${date}.json`);
 }
 
+function cacheKvKey(market: ScreenMarket, date: string): string {
+  return `daily-screen:${market}:${date}`;
+}
+
 function emptyState(market: ScreenMarket, date: string): DailyScreenState {
   return { market, date, status: "idle", progress: { done: 0, total: 0 }, results: [], startedAt: null, finishedAt: null, error: null };
 }
@@ -91,11 +96,24 @@ const states = new Map<ScreenMarket, DailyScreenState>([
   ["us", emptyState("us", todayJst())],
 ]);
 
+// Upstash Redis(環境変数UPSTASH_REDIS_REST_URL/TOKEN)が設定されていればそちらを
+// 永続化先として使う(複数の常時起動サーバーインスタンス間・再デプロイ後も共有できる)。
+// 未設定時は従来通りローカルディスク(.data/)へフォールバックする(ローカル開発時に
+// Upstashアカウントを必須にしないため)。
 async function loadFromDiskIfNewer(market: ScreenMarket): Promise<void> {
   const date = todayJst();
   const state = states.get(market)!;
   if (state.date === date && (state.status === "done" || state.status === "running")) return;
   try {
+    if (isKvConfigured()) {
+      const parsed = await getJson<DailyScreenState>(cacheKvKey(market, date));
+      if (parsed && parsed.date === date) {
+        states.set(market, parsed);
+        return;
+      }
+      if (state.date !== date) states.set(market, emptyState(market, date));
+      return;
+    }
     const raw = fs.readFileSync(cacheFilePath(market, date), "utf-8");
     const parsed = JSON.parse(raw) as DailyScreenState;
     if (parsed.date === date) states.set(market, parsed);
@@ -107,6 +125,10 @@ async function loadFromDiskIfNewer(market: ScreenMarket): Promise<void> {
 async function persistToDisk(market: ScreenMarket): Promise<void> {
   const state = states.get(market)!;
   try {
+    if (isKvConfigured()) {
+      await setJson(cacheKvKey(market, state.date), state);
+      return;
+    }
     fs.mkdirSync(CACHE_DIR, { recursive: true });
     fs.writeFileSync(cacheFilePath(market, state.date), JSON.stringify(state));
   } catch (e) {
