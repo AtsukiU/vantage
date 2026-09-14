@@ -320,7 +320,7 @@ export function PortfolioTab({
               </div>
             </div>
             {Object.keys(totals).length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-x-3 gap-y-0.5 border-t border-[var(--border-subtle)] pt-2 text-[10.5px] text-[var(--text-secondary)]">
+              <div className="mt-3 flex flex-wrap gap-x-3 gap-y-0.5 border-t border-[var(--border-subtle)] pt-2 text-[11px] text-[var(--text-secondary)]">
                 {Object.entries(totals).map(([currency, t]) => (
                   <span key={currency}>
                     {currency}: {currencyPrefix(currency)}
@@ -357,7 +357,7 @@ export function PortfolioTab({
                       color: fixedColor(c.currency, CURRENCY_ORDER),
                     }))}
                   />
-                  {usdJpyRate == null && <div className="mt-2 text-[10.5px] text-[var(--text-muted)]">為替レート取得中(概算 ¥150/$)</div>}
+                  {usdJpyRate == null && <div className="mt-2 text-[11px] text-[var(--text-muted)]">為替レート取得中(概算 ¥150/$)</div>}
                 </div>
               )}
               {sectorBreakdown.length > 0 && (
@@ -380,10 +380,10 @@ export function PortfolioTab({
         <div className={`${GLASS_CARD} mb-4`}>
           <div className="flex items-center gap-2">
             <ClipboardCheck size={15} strokeWidth={2.25} className="text-[var(--accent)]" />
-            <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">ポートフォリオアドバイザー</h2>
+            <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">ポートフォリオアドバイザー</h2>
             {health && (
               <span
-                className="ml-auto rounded-full px-2 py-0.5 text-[10.5px] font-bold text-white"
+                className="ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
                 style={{ background: HEALTH_COLOR[health.overallLevel] }}
               >
                 {HEALTH_LABEL[health.overallLevel]}
@@ -433,7 +433,7 @@ export function PortfolioTab({
               </>
             ) : (
               <>
-                <span className="text-[13px] font-bold tabular-nums" style={{ color: cashJpy < 0 ? GLASS_DOWN : "var(--foreground)" }}>
+                <span className="text-[12.5px] font-bold tabular-nums" style={{ color: cashJpy < 0 ? GLASS_DOWN : "var(--foreground)" }}>
                   {cashJpy < 0 ? "−" : ""}¥{fmt(Math.abs(cashJpy), "JPY")}
                 </span>
                 <button
@@ -456,10 +456,10 @@ export function PortfolioTab({
                 </button>
               </>
             )}
-            <span className="text-[10.5px] text-[var(--text-muted)]">— 銘柄の購入/売却で自動的に増減します。「運用アドバイザー」タブの買い推奨サイジングにも使われます</span>
+            <span className="text-[11px] text-[var(--text-muted)]">— 銘柄の購入/売却で自動的に増減します。「運用アドバイザー」タブの買い推奨サイジングにも使われます</span>
           </div>
           {cashJpy < 0 && (
-            <p className="mt-1.5 text-[10.5px] text-[var(--price-up)]">
+            <p className="mt-1.5 text-[11px] text-[var(--price-up)]">
               手元資金がマイナスです。入金の記録漏れがあるか、確認してみてください。
             </p>
           )}
@@ -484,8 +484,8 @@ export function PortfolioTab({
         </div>
 
         <div className={`${GLASS_CARD} mb-4`}>
-          <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">銘柄を購入</h2>
-          <p className="mb-2 mt-1 text-[10.5px] text-[var(--text-muted)]">購入代金+手数料(SBI証券換算)を上の手元資金から自動的に差し引きます。</p>
+          <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">銘柄を購入</h2>
+          <p className="mb-2 mt-1 text-[11px] text-[var(--text-muted)]">購入代金+手数料(SBI証券換算)を上の手元資金から自動的に差し引きます。</p>
           <StockSearchBar
             onSelect={(symbol, name) => {
               setPending({ symbol, name });
@@ -553,7 +553,57 @@ export function PortfolioTab({
               まだ保有銘柄がありません。上の検索から追加してください。
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            {/* スマホ幅では横スクロール前提の表ではなく、1銘柄1カードの縦積みリストにする
+                (取得単価は株数と1行にまとめ、画面内に収まるようにする)。 */}
+            <div className="divide-y divide-[var(--border-faint)] md:hidden">
+              {holdings.map((h) => {
+                const m = prices.get(h.ticker);
+                const price = m?.price ?? null;
+                const value = (price ?? h.avgCost) * h.shares;
+                const cost = h.avgCost * h.shares;
+                const pl = value - cost;
+                const plPct = cost > 0 ? (pl / cost) * 100 : 0;
+                const up = pl >= 0;
+                return (
+                  <div key={h.id} className="flex flex-col gap-1.5 px-4 py-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <button
+                        onClick={() => onOpenDetail(h.ticker, h.name)}
+                        className="min-w-0 text-left"
+                      >
+                        <div className="truncate font-semibold text-[var(--foreground)] hover:text-[var(--accent)] hover:underline">{h.name}</div>
+                        <div className="font-mono text-[11px] text-[var(--text-secondary)]">
+                          {h.ticker} ・ {h.shares.toLocaleString()}株 @ {currencyPrefix(h.currency)}
+                          {fmt(h.avgCost, h.currency)}
+                        </div>
+                      </button>
+                      <button onClick={() => handleRemove(h.id)} className="shrink-0 text-xs text-[var(--text-muted)] hover:text-red-600">
+                        売却
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between text-[15px] tabular-nums">
+                      <span className="text-[var(--foreground)]">
+                        {loadingPrices && price == null ? "…" : price != null ? `${currencyPrefix(h.currency)}${fmt(price, h.currency)}` : "—"}
+                      </span>
+                      <span className="flex items-center gap-1 font-semibold" style={{ color: up ? GLASS_UP : GLASS_DOWN }}>
+                        {currencyPrefix(h.currency)}
+                        {fmt(Math.abs(pl), h.currency)} ({plPct >= 0 ? "+" : ""}
+                        {plPct.toFixed(1)}%)
+                        <TrailingStopBadge
+                          price={price}
+                          priceVs50ma={m?.priceVs50ma ?? null}
+                          currency={h.currency}
+                          isProfitable={pl > 0}
+                        />
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[560px] text-sm">
               <thead className="border-b border-[var(--border-subtle)] bg-[var(--fill-subtle)] text-left text-xs text-[var(--text-secondary)]">
                 <tr>
@@ -619,6 +669,7 @@ export function PortfolioTab({
               </tbody>
             </table>
             </div>
+            </>
           )}
         </div>
         <p className="mb-4 mt-3 text-xs text-[var(--text-muted)]">

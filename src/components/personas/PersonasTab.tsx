@@ -18,7 +18,7 @@ import { Users, TrendingDown, TrendingUp, ShieldCheck } from "lucide-react";
 function DetailTooltip({ detail }: { detail: FilterExplanation[] }) {
   if (detail.length === 0) return null;
   return (
-    <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-1.5 hidden w-60 rounded-lg bg-[#1c1b18] p-2.5 text-[10.5px] shadow-lg group-hover:block">
+    <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-1.5 hidden w-60 rounded-lg bg-[#1c1b18] p-2.5 text-[11px] shadow-lg group-hover:block">
       {detail.map((d) => (
         <div key={d.label} className="flex items-center justify-between gap-2 py-0.5">
           <span className="flex items-center gap-1" style={{ color: d.pass ? "var(--status-good-soft)" : "var(--status-bad-soft)" }}>
@@ -126,7 +126,7 @@ export function PersonasTab({
         <div className={`${GLASS_CARD} mb-4`}>
           <div className="flex items-center gap-2">
             <Users size={16} strokeWidth={2.25} className="text-[var(--accent)]" />
-            <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">運用アドバイザー</h2>
+            <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">運用アドバイザー</h2>
           </div>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">
             7人の仮想アドバイザー(トレンド/総合スコア/バリュー/リスク管理/インカム/イベント警戒/統括マネージャー)が、あなたの実際の保有銘柄(ポートフォリオタブ)と「本日の注目銘柄」を見て、
@@ -137,7 +137,7 @@ export function PersonasTab({
               {loading ? "判断を実行中…" : "判断を実行する"}
             </button>
             {portfolioValueJpy > 0 && (
-              <span className="text-[10.5px] text-[var(--text-muted)]">保有銘柄{holdingCount}件・評価額(円換算) {fmtYen(portfolioValueJpy)}</span>
+              <span className="text-[11px] text-[var(--text-muted)]">保有銘柄{holdingCount}件・評価額(円換算) {fmtYen(portfolioValueJpy)}</span>
             )}
           </div>
 
@@ -163,7 +163,7 @@ export function PersonasTab({
               </>
             ) : (
               <>
-                <span className="text-[13px] font-bold text-[var(--foreground)]">{fmtYen(cashJpy)}</span>
+                <span className="text-[12.5px] font-bold text-[var(--foreground)]">{fmtYen(cashJpy)}</span>
                 <button
                   onClick={() => {
                     setCashInput(String(cashJpy || ""));
@@ -175,7 +175,7 @@ export function PersonasTab({
                 </button>
               </>
             )}
-            <span className="text-[10.5px] text-[var(--text-muted)]">— 買い推奨のうち、これで今すぐ買える銘柄は明るい色、買えない銘柄は薄く表示されます</span>
+            <span className="text-[11px] text-[var(--text-muted)]">— 買い推奨のうち、これで今すぐ買える銘柄は明るい色、買えない銘柄は薄く表示されます</span>
           </div>
 
           {scansMissing && (
@@ -218,10 +218,10 @@ export function PersonasTab({
                       <span className="shrink-0 rounded-full bg-[var(--accent)] px-2 py-0.5 text-[9px] font-bold text-white">最終決定</span>
                     )}
                   </div>
-                  <p className="mt-1 text-[10.5px] leading-relaxed text-[var(--text-muted)]">{def.description}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">{def.description}</p>
 
                   <div className="mt-3">
-                    <div className="mb-1 flex items-center gap-1 text-[10.5px] font-bold text-[var(--accent)]">
+                    <div className="mb-1 flex items-center gap-1 text-[11px] font-bold text-[var(--accent)]">
                       <TrendingUp size={12} strokeWidth={2.5} />
                       買い推奨
                     </div>
@@ -250,11 +250,11 @@ export function PersonasTab({
                               >
                                 {b.name ?? b.ticker}
                               </button>
-                              <span className="font-mono text-[10.5px] font-bold" style={{ color: b.affordableNow ? "var(--accent)" : "var(--text-muted)" }}>
+                              <span className="font-mono text-[11px] font-bold" style={{ color: b.affordableNow ? "var(--accent)" : "var(--text-muted)" }}>
                                 {b.suggestedShares}株({fmtYen(b.suggestedValueJpy)})
                               </span>
                             </div>
-                            <div className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-[var(--text-secondary)]">
+                            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)]">
                               <span>{b.reason}</span>
                               {b.estimatedFeeJpy > 0 && <span>手数料目安 {fmtYen(b.estimatedFeeJpy)}</span>}
                               {b.affordableNow ? (
@@ -270,7 +270,7 @@ export function PersonasTab({
                   </div>
 
                   <div className="mt-3">
-                    <div className="mb-1 flex items-center gap-1 text-[10.5px] font-bold text-[var(--price-up)]">
+                    <div className="mb-1 flex items-center gap-1 text-[11px] font-bold text-[var(--price-up)]">
                       <TrendingDown size={12} strokeWidth={2.5} />
                       売り推奨
                     </div>
@@ -302,7 +302,7 @@ export function PersonasTab({
           <summary className="cursor-pointer list-none text-[12.5px] font-bold text-[var(--text-secondary)]">
             <span className="inline-flex items-center gap-1.5">
               検証用: このルールに従い続けた場合の仮想運用成績(架空資金)
-              <span className="text-[10.5px] font-normal text-[var(--text-muted)] group-open:hidden">(クリックで開く)</span>
+              <span className="text-[11px] font-normal text-[var(--text-muted)] group-open:hidden">(クリックで開く)</span>
             </span>
           </summary>
           <div className="mt-3">
@@ -314,7 +314,7 @@ export function PersonasTab({
           <summary className="cursor-pointer list-none text-[12.5px] font-bold text-[var(--text-secondary)]">
             <span className="inline-flex items-center gap-1.5">
               過去5年のトレンドフォロー検証(株価データのみ)・S&amp;P500との比較
-              <span className="text-[10.5px] font-normal text-[var(--text-muted)] group-open:hidden">(クリックで開く)</span>
+              <span className="text-[11px] font-normal text-[var(--text-muted)] group-open:hidden">(クリックで開く)</span>
             </span>
           </summary>
           <div className="mt-3">
@@ -396,7 +396,7 @@ function SimulatedTrackRecord() {
           {running ? "更新中…" : "検証データを更新する"}
         </button>
         {data?.lastRunAt && (
-          <span className="text-[10.5px] text-[var(--text-muted)]">
+          <span className="text-[11px] text-[var(--text-muted)]">
             最終更新:{" "}
             {new Date(data.lastRunAt).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}
           </span>
@@ -417,10 +417,10 @@ function SimulatedTrackRecord() {
                 <div key={id} className="rounded-xl bg-[var(--fill-subtle)] p-2.5">
                   <div className="flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full" style={{ background: PERSONA_COLOR[id] }} />
-                    <span className="text-[10.5px] font-bold text-[var(--foreground)]">{def.label.split("(")[0]}</span>
+                    <span className="text-[11px] font-bold text-[var(--foreground)]">{def.label.split("(")[0]}</span>
                   </div>
-                  <div className="mt-1 text-[13px] font-extrabold text-[var(--foreground)]">{fmtYen(equity)}</div>
-                  <div className="text-[10.5px] font-semibold" style={{ color: returnPct >= 0 ? "var(--status-good)" : "var(--price-up)" }}>
+                  <div className="mt-1 text-[12.5px] font-extrabold text-[var(--foreground)]">{fmtYen(equity)}</div>
+                  <div className="text-[11px] font-semibold" style={{ color: returnPct >= 0 ? "var(--status-good)" : "var(--price-up)" }}>
                     {returnPct >= 0 ? "+" : ""}
                     {returnPct.toFixed(1)}%
                   </div>
@@ -431,7 +431,7 @@ function SimulatedTrackRecord() {
 
           {allTrades.length > 0 && (
             <div className="mt-3 max-h-60 overflow-auto">
-              <table className="w-full min-w-[480px] text-[10.5px]">
+              <table className="w-full min-w-[480px] text-[11px]">
                 <thead>
                   <tr className={`border-b border-[var(--border-subtle)] text-left ${GLASS_TEXT2}`}>
                     <th className="whitespace-nowrap py-1 pr-2 font-semibold">日付</th>

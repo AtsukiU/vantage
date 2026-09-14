@@ -64,7 +64,7 @@ export function PeerComparisonSection({
                     >
                       {p.name ?? p.ticker}
                     </button>
-                    <div className="font-mono text-[10.5px] text-[var(--text-secondary)]">{p.ticker}</div>
+                    <div className="font-mono text-[11px] text-[var(--text-secondary)]">{p.ticker}</div>
                   </td>
                   <td className="py-2 px-2 text-right font-mono text-[var(--foreground)]">
                     {p.price != null
@@ -93,7 +93,7 @@ export function PeerComparisonSection({
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-[10.5px] leading-relaxed text-[var(--text-muted)]">
+      <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-muted)]">
         Yahoo Financeの類似銘柄アルゴリズムによる関連銘柄です(厳密な業種分類ではありません)。緑色は本銘柄よりPER/PBRが低い、またはROE/配当利回りが高いことを示します。
       </p>
     </div>

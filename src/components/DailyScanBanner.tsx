@@ -130,7 +130,7 @@ export function DailyScanBanner({ onStart, compact = false }: { onStart?: () => 
             <button
               onClick={() => handleStart(true)}
               disabled={starting}
-              className="mt-1.5 text-[10.5px] font-semibold text-[var(--text-muted)] underline decoration-dotted hover:text-[var(--accent)] disabled:opacity-60"
+              className="mt-1.5 text-[11px] font-semibold text-[var(--text-muted)] underline decoration-dotted hover:text-[var(--accent)] disabled:opacity-60"
             >
               進んでいない場合はリセットして再開
             </button>
@@ -175,7 +175,7 @@ export function DailyScanBanner({ onStart, compact = false }: { onStart?: () => 
       <div className={`${GLASS_CARD} mb-4`}>
         <div className="flex items-center gap-2">
           <Rocket size={16} strokeWidth={2.25} className="text-[var(--accent)]" />
-          <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">今日の取引の準備中…</h2>
+          <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">今日の取引の準備中…</h2>
         </div>
         <p className="mt-1 text-xs text-[var(--text-secondary)]">
           日本株・米国株をスキャン中です({doneCount}/2市場完了)。他のタブに移動しても処理は続きます。
@@ -208,7 +208,7 @@ export function DailyScanBanner({ onStart, compact = false }: { onStart?: () => 
     <div className={`${GLASS_CARD} mb-4`}>
       <div className="flex items-center gap-2">
         <Rocket size={16} strokeWidth={2.25} className="text-[var(--accent)]" />
-        <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">今日の取引を始めますか?</h2>
+        <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">今日の取引を始めますか?</h2>
       </div>
       <p className="mt-1 text-xs text-[var(--text-secondary)]">
         東証プライム(約1,550銘柄)とS&amp;P500(約500銘柄)をフルスキャンして「本日の注目銘柄」を更新します。運用アドバイザータブの判断材料もこれを基にします。実行には1〜3分程度かかります。

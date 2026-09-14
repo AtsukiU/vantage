@@ -75,8 +75,17 @@ function LiveNewsTicker({ items, onSelect }: { items: NewsItem[]; onSelect: (ite
 
   if (items.length === 0) {
     return (
-      <div className="flex shrink-0 items-center justify-center rounded-[10px] px-4 py-2.5 text-[11px]" style={{ background: "#0a0c0e", color: "rgba(255,255,255,.5)" }}>
-        読み込み中…
+      <div
+        className="flex shrink-0 items-center justify-center gap-1 rounded-[10px] px-4 py-2.5 font-mono text-[11px]"
+        style={{ background: "#0a0c0e", color: "rgba(255,255,255,.5)" }}
+      >
+        読み込み中
+        <motion.span
+          aria-hidden
+          className="inline-block h-3 w-[6px] bg-current"
+          animate={{ opacity: [1, 0, 1] }}
+          transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
     );
   }
@@ -137,7 +146,7 @@ function CardHeader({
   const content = (
     <>
       <Icon size={14} strokeWidth={2.25} style={{ color: iconColor }} />
-      <h3 className="flex-1 text-[13px] font-extrabold" style={{ color: GLASS_TEXT }}>
+      <h3 className="flex-1 text-[12.5px] font-extrabold" style={{ color: GLASS_TEXT }}>
         {title}
       </h3>
       {onNavigate && <ChevronRight size={14} strokeWidth={2.5} style={{ color: GLASS_TEXT2 }} />}
@@ -268,7 +277,7 @@ function StatBlock({
       whileTap={{ scale: 0.98 }}
       className="flex min-w-0 flex-col gap-0.5 rounded-[8px] p-1.5 text-left transition-colors hover:bg-black/[0.03]"
     >
-      <div className="truncate text-[10.5px] font-medium" style={{ color: GLASS_TEXT2 }}>
+      <div className="truncate text-[11px] font-medium" style={{ color: GLASS_TEXT2 }}>
         {label}
       </div>
       <div className="truncate text-[22px] font-extrabold tabular-nums leading-tight" style={{ color: valueColor ?? GLASS_TEXT }}>
@@ -295,7 +304,7 @@ function AllocationBarRow({
         {label}
       </div>
       {total <= 0 || positive.length === 0 ? (
-        <div className="text-[10.5px]" style={{ color: "var(--text-muted)" }}>
+        <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
           データがありません
         </div>
       ) : (
@@ -385,7 +394,7 @@ function SectorDonut({
         {label}
       </div>
       {total <= 0 || positive.length === 0 ? (
-        <div className="text-[10.5px]" style={{ color: "var(--text-muted)" }}>
+        <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
           データがありません
         </div>
       ) : (
@@ -519,7 +528,7 @@ function AdviceTooltip({ anchor }: { anchor: TooltipAnchor | null }) {
     : { top: rect.bottom + 6 };
   return createPortal(
     <div
-      className="pointer-events-none fixed z-50 w-60 rounded-lg bg-[#1c1b18] p-2.5 text-left text-[10.5px] font-normal text-white shadow-lg"
+      className="pointer-events-none fixed z-50 w-60 rounded-lg bg-[#1c1b18] p-2.5 text-left text-[11px] font-normal text-white shadow-lg"
       style={{ ...position, left }}
     >
       <div className="mb-1.5 font-semibold text-white/90">{reason}</div>
@@ -582,16 +591,16 @@ function QuoteRowView({ row }: { row: QuoteRow }) {
       }}
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
-      <span className="w-16 shrink-0 truncate text-[10.5px] font-bold" style={{ color: "var(--tone-4)" }}>
+      <span className="w-16 shrink-0 truncate text-[11px] font-bold" style={{ color: "var(--tone-4)" }}>
         {row.label}
       </span>
       <span className="flex-1 text-right text-[11px] font-bold tabular-nums text-white">
         {row.price != null ? row.format(displayPrice) : "--"}
       </span>
-      <span className="flex-1 text-right text-[10px] font-bold tabular-nums" style={{ color: changeColor(row.changePercent) }}>
+      <span className="flex-1 text-right text-[9px] font-bold tabular-nums" style={{ color: changeColor(row.changePercent) }}>
         {fmtChg(row.changePercent)}
       </span>
-      <span className="flex-1 text-right text-[10px] font-bold tabular-nums" style={{ color: changeColor(row.changePercentMonth) }}>
+      <span className="flex-1 text-right text-[9px] font-bold tabular-nums" style={{ color: changeColor(row.changePercentMonth) }}>
         {fmtChg(row.changePercentMonth)}
       </span>
     </motion.div>
@@ -612,9 +621,9 @@ function QuoteTerminal({ rows }: { rows: QuoteRow[] }) {
     <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto">
       <div className="flex items-center gap-2 border-b border-white/10 pb-1.5">
         <span className="w-16 shrink-0" />
-        <span className="flex-1 text-right text-[8.5px] font-bold tracking-wide text-white/35">現在値</span>
-        <span className="flex-1 text-right text-[8.5px] font-bold tracking-wide text-white/35">前日比</span>
-        <span className="flex-1 text-right text-[8.5px] font-bold tracking-wide text-white/35">前月比</span>
+        <span className="flex-1 text-right text-[9px] font-bold tracking-wide text-white/35">現在値</span>
+        <span className="flex-1 text-right text-[9px] font-bold tracking-wide text-white/35">前日比</span>
+        <span className="flex-1 text-right text-[9px] font-bold tracking-wide text-white/35">前月比</span>
       </div>
       {rows.map((r) => (
         <QuoteRowView key={r.label} row={r} />
@@ -854,7 +863,7 @@ export function DashboardTab({
                 onClick={() => onNavigateTab("portfolio")}
                 deltaNode={
                   deltaParts.length > 0 ? (
-                    <span className="text-[10.5px] font-semibold" style={{ color: GLASS_TEXT2 }}>
+                    <span className="text-[11px] font-semibold" style={{ color: GLASS_TEXT2 }}>
                       {deltaParts.join("・")}
                     </span>
                   ) : undefined
@@ -908,7 +917,7 @@ export function DashboardTab({
                           {h.name}
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-[10.5px]" style={{ color: "var(--text-muted)" }}>
+                          <span className="font-mono text-[11px]" style={{ color: "var(--text-muted)" }}>
                             {h.shares}株
                           </span>
                           {earningsSoon && (
@@ -953,7 +962,7 @@ export function DashboardTab({
                     </span>
                     <div className="min-w-0">
                       <div className="text-[11px] font-extrabold leading-tight text-[var(--status-danger)]">要確認({healthAlerts.length}件)</div>
-                      <div className="truncate text-[10.5px] leading-tight text-[var(--status-danger)]/85">{healthAlerts[0].message}</div>
+                      <div className="truncate text-[11px] leading-tight text-[var(--status-danger)]/85">{healthAlerts[0].message}</div>
                     </div>
                   </div>
                 )}
@@ -1009,12 +1018,12 @@ export function DashboardTab({
                 <CardHeader icon={TrendingUp} iconColor={GLASS_TEXT2} title="アドバイザーの推奨銘柄" onNavigate={() => onNavigateTab("personas")} />
                 <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3 pt-0">
                   {buyCount === 0 && sellCount === 0 ? (
-                    <div className="flex flex-1 items-center justify-center rounded-[8px] border border-dashed p-2.5 text-center text-[10.5px]" style={{ borderColor: GLASS_BORDER, color: "var(--text-muted)" }}>
+                    <div className="flex flex-1 items-center justify-center rounded-[8px] border border-dashed p-2.5 text-center text-[11px]" style={{ borderColor: GLASS_BORDER, color: "var(--text-muted)" }}>
                       推奨はありません
                     </div>
                   ) : (
                     <>
-                      <div className="text-[10.5px] font-semibold" style={{ color: "var(--text-muted)" }}>
+                      <div className="text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>
                         買い推奨
                       </div>
                       {buyCount === 0 && (
@@ -1033,16 +1042,16 @@ export function DashboardTab({
                         >
                           {i === 0 && <ShineSweep />}
                           <div className="min-w-0 flex-1">
-                            <div className="truncate text-[13px] font-bold" style={{ color: GLASS_TEXT }}>
+                            <div className="truncate text-[12.5px] font-bold" style={{ color: GLASS_TEXT }}>
                               {b.name ?? b.ticker}
                             </div>
-                            <div className="font-mono text-[10.5px]" style={{ color: GLASS_TEXT2 }}>
+                            <div className="font-mono text-[11px]" style={{ color: GLASS_TEXT2 }}>
                               {b.ticker}
                             </div>
                           </div>
                         </button>
                       ))}
-                      <div className="text-[10.5px] font-semibold" style={{ color: "var(--text-muted)" }}>
+                      <div className="text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>
                         売り推奨
                       </div>
                       {sellCount === 0 && (
@@ -1059,10 +1068,10 @@ export function DashboardTab({
                           className={`flex flex-1 items-center gap-2.5 ${FLAT_ITEM}`}
                         >
                           <div className="min-w-0 flex-1">
-                            <div className="truncate text-[13px] font-bold" style={{ color: GLASS_TEXT }}>
+                            <div className="truncate text-[12.5px] font-bold" style={{ color: GLASS_TEXT }}>
                               {s.name ?? s.ticker}
                             </div>
-                            <div className="font-mono text-[10.5px]" style={{ color: GLASS_TEXT2 }}>
+                            <div className="font-mono text-[11px]" style={{ color: GLASS_TEXT2 }}>
                               {s.ticker}
                             </div>
                           </div>
@@ -1086,7 +1095,7 @@ export function DashboardTab({
                     <button
                       key={m.key}
                       onClick={() => setPickMarket(m.key)}
-                      className="rounded-full px-2.5 py-1 text-[10.5px] font-semibold transition"
+                      className="rounded-full px-2.5 py-1 text-[11px] font-semibold transition"
                       style={
                         pickMarket === m.key
                           ? { background: "var(--accent)", color: "#ffffff" }
@@ -1102,7 +1111,7 @@ export function DashboardTab({
                     const filteredPicks = (pickMarket === "all" ? topPicks : topPicks.filter((p) => p.market === pickMarket)).slice(0, 2);
                     if (filteredPicks.length === 0) {
                       return (
-                        <div className="flex flex-1 items-center justify-center rounded-[8px] border border-dashed p-2.5 text-center text-[10.5px]" style={{ borderColor: GLASS_BORDER, color: "var(--text-muted)" }}>
+                        <div className="flex flex-1 items-center justify-center rounded-[8px] border border-dashed p-2.5 text-center text-[11px]" style={{ borderColor: GLASS_BORDER, color: "var(--text-muted)" }}>
                           本日分のスキャン待ち
                         </div>
                       );
@@ -1116,13 +1125,13 @@ export function DashboardTab({
                       >
                         {i === 0 && <ShineSweep />}
                         <div className="min-w-0 flex-1">
-                          <div className="text-[10.5px] font-semibold" style={{ color: "var(--text-muted)" }}>
+                          <div className="text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>
                             {i + 1}位
                           </div>
-                          <div className="truncate text-[13px] font-bold" style={{ color: GLASS_TEXT }}>
+                          <div className="truncate text-[12.5px] font-bold" style={{ color: GLASS_TEXT }}>
                             {pick.name ?? pick.ticker}
                           </div>
-                          <div className="font-mono text-[10.5px]" style={{ color: GLASS_TEXT2 }}>
+                          <div className="font-mono text-[11px]" style={{ color: GLASS_TEXT2 }}>
                             {pick.ticker}
                           </div>
                         </div>

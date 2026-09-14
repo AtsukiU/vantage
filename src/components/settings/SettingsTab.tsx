@@ -49,13 +49,13 @@ export function SettingsTab({ hidden }: { hidden: boolean }) {
         <div className={`${GLASS_CARD} mb-4`}>
           <div className="flex items-center gap-2">
             <Palette size={16} strokeWidth={2.25} className="text-[var(--accent)]" />
-            <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">設定</h2>
+            <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">設定</h2>
           </div>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">アプリの見た目のテーマを切り替えられます。この端末のブラウザにのみ保存されます。</p>
         </div>
 
         <div className={`${GLASS_CARD} mb-4`}>
-          <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">明るさ</h3>
+          <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">明るさ</h3>
           <div className="grid grid-cols-3 gap-3">
             {MODES.map((m) => {
               const isActive = mode === m.id;
@@ -71,7 +71,7 @@ export function SettingsTab({ hidden }: { hidden: boolean }) {
                   }}
                 >
                   <Icon size={18} strokeWidth={2.25} style={{ color: isActive ? "var(--accent)" : "var(--text-secondary)" }} />
-                  <span className="text-[11.5px] font-bold" style={{ color: isActive ? "var(--foreground)" : "var(--text-secondary)" }}>
+                  <span className="text-[11px] font-bold" style={{ color: isActive ? "var(--foreground)" : "var(--text-secondary)" }}>
                     {m.label}
                   </span>
                 </button>
@@ -81,7 +81,7 @@ export function SettingsTab({ hidden }: { hidden: boolean }) {
         </div>
 
         <div className={`${GLASS_CARD}`}>
-          <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">テーマ</h3>
+          <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">テーマ</h3>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {THEMES.map((t) => {
               const isActive = current === t.id;
@@ -111,12 +111,12 @@ export function SettingsTab({ hidden }: { hidden: boolean }) {
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 text-[10.5px] leading-relaxed text-[var(--text-muted)]">{t.description}</p>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--text-muted)]">{t.description}</p>
                 </button>
               );
             })}
           </div>
-          <p className="mt-3 text-[10.5px] leading-relaxed text-[var(--text-muted)]">
+          <p className="mt-3 text-[11px] leading-relaxed text-[var(--text-muted)]">
             切り替わるのはアクセントカラー・ページ背景・強調色のみです。本文の文字色や境界線などの中間トーンは全テーマ共通です。
           </p>
         </div>

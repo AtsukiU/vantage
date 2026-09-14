@@ -79,7 +79,7 @@ export function AddToPortfolioForm({
   }
 
   const inputBase =
-    "w-full rounded-lg border border-[var(--border-subtle)] px-2.5 py-1.5 text-[13px] font-mono outline-none focus:border-[var(--accent)]";
+    "w-full rounded-lg border border-[var(--border-subtle)] px-2.5 py-1.5 text-[12.5px] font-mono outline-none focus:border-[var(--accent)]";
 
   if (!open) {
     return (
@@ -123,7 +123,7 @@ export function AddToPortfolioForm({
             </button>
           </div>
           <div className="mt-2 grid grid-cols-2 gap-2">
-            <label className="flex flex-col gap-1 text-[10.5px] text-[var(--text-secondary)]">
+            <label className="flex flex-col gap-1 text-[11px] text-[var(--text-secondary)]">
               株数
               <input
                 type="number"
@@ -133,15 +133,15 @@ export function AddToPortfolioForm({
                 className={inputBase}
               />
             </label>
-            <label className="flex flex-col gap-1 text-[10.5px] text-[var(--text-secondary)]">
+            <label className="flex flex-col gap-1 text-[11px] text-[var(--text-secondary)]">
               平均取得単価
               <input type="number" value={avgCost} onChange={(e) => setAvgCost(e.target.value)} className={inputBase} />
             </label>
           </div>
           {cashJpy != null && (
-            <p className="mt-1.5 text-[10.5px] text-[var(--text-muted)]">手元資金: ¥{Math.round(cashJpy).toLocaleString("ja-JP")}</p>
+            <p className="mt-1.5 text-[11px] text-[var(--text-muted)]">手元資金: ¥{Math.round(cashJpy).toLocaleString("ja-JP")}</p>
           )}
-          {error && <p className="mt-1.5 text-[10.5px] font-semibold text-[var(--price-up)]">{error}</p>}
+          {error && <p className="mt-1.5 text-[11px] font-semibold text-[var(--price-up)]">{error}</p>}
           <button onClick={handleSubmit} className={`${GLASS_BTN_PRIMARY} mt-2.5 w-full justify-center`}>
             購入する
           </button>

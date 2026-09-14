@@ -51,7 +51,7 @@ export function OverallScoreBadge({ score, grade, breakdown }: { score: number; 
     <span className="group relative inline-flex cursor-help items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold" style={{ background: `${color}1f`, color }}>
       {grade}
       <span className="font-mono font-normal text-[var(--text-secondary)]">{score}</span>
-      <div className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 hidden w-52 rounded-lg bg-[#1c1b18] p-2.5 text-left text-[10.5px] font-normal normal-case shadow-lg group-hover:block">
+      <div className="pointer-events-none absolute bottom-full right-0 z-20 mb-1.5 hidden w-52 rounded-lg bg-[#1c1b18] p-2.5 text-left text-[11px] font-normal normal-case shadow-lg group-hover:block">
         <BreakdownRow label="ミネルヴィニ" value={breakdown.minerviniScore} total={MINERVINI_TOTAL} />
         <BreakdownRow label="CANSLIM" value={breakdown.canslimScore} total={CANSLIM_TOTAL} />
         <BreakdownRow label="財務健全性" value={breakdown.qualityScore} total={breakdown.qualityTotal} />

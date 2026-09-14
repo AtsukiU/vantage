@@ -57,7 +57,7 @@ export function PriceChart({ points, range, onRangeChange }: PriceChartProps) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-[13px] font-extrabold text-[var(--foreground)]">株価推移</h3>
+        <h3 className="text-[12.5px] font-extrabold text-[var(--foreground)]">株価推移</h3>
         <div className="flex gap-[3px] rounded-full bg-[var(--fill-pill)] p-[3px]">
           {RANGES.map((r) => (
             <button

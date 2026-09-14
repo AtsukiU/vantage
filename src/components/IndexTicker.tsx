@@ -26,7 +26,7 @@ function QuoteChip({ quote }: { quote: Quote }) {
   const arrow = up ? "▲" : down ? "▼" : "―";
 
   return (
-    <span className="mx-1 inline-flex shrink-0 items-baseline gap-1.5 whitespace-nowrap rounded-full bg-[var(--fill-pill)] px-3 py-1.5 text-[13px]">
+    <span className="mx-1 inline-flex shrink-0 items-baseline gap-1.5 whitespace-nowrap rounded-full bg-[var(--fill-pill)] px-3 py-1.5 text-[12.5px]">
       <span className="font-semibold text-[var(--foreground)]">{quote.label}</span>
       <span className="tabular-nums text-[var(--foreground)]">{formatPrice(quote)}</span>
       <span className="tabular-nums font-semibold" style={{ color }}>

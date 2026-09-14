@@ -60,7 +60,7 @@ export function RingGauge({
         </div>
       </div>
       <div
-        className="mt-2 text-[10.5px] font-bold"
+        className="mt-2 text-[11px] font-bold"
         style={{ color: good ? ringColor : "var(--foreground)" }}
       >
         {label}
@@ -75,7 +75,7 @@ export function RingGauge({
       >
         <b className="mb-1 block text-[11px] font-bold text-white">{label}</b>
         {tooltip}
-        <span className="mt-1 block text-[10.5px] text-[#b8b3a4]">{benchmarkText}</span>
+        <span className="mt-1 block text-[11px] text-[#b8b3a4]">{benchmarkText}</span>
         <span className="absolute left-1/2 top-full -translate-x-1/2 border-[6px] border-transparent border-t-[#1c1b18]" />
       </div>
     </div>

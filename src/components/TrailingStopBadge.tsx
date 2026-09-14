@@ -28,7 +28,7 @@ export function TrailingStopBadge({
   if (!hint) return null;
 
   return (
-    <div className="mt-0.5 text-[10.5px]" style={{ color: hint.belowMa50 ? DOWN : "var(--text-muted)" }}>
+    <div className="mt-0.5 text-[11px]" style={{ color: hint.belowMa50 ? DOWN : "var(--text-muted)" }}>
       {hint.belowMa50 ? "50日線を割れています" : `利確目安 50日線${fmt(hint.ma50Price, currency)}`}
     </div>
   );

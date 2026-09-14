@@ -25,9 +25,9 @@ export function ChecklistScoreCard({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-3 text-left"
       >
-        <h3 className="text-[13px] font-extrabold text-[var(--foreground)]">{title}</h3>
+        <h3 className="text-[12.5px] font-extrabold text-[var(--foreground)]">{title}</h3>
         <span className="flex shrink-0 items-center gap-2">
-          <span className="font-mono text-[13px] font-extrabold tabular-nums" style={{ color: scoreColor }}>
+          <span className="font-mono text-[12.5px] font-extrabold tabular-nums" style={{ color: scoreColor }}>
             {score.passCount}/{score.total}
           </span>
           <span className="text-[11px] text-[var(--text-muted)]">{open ? "▲" : "▼"}</span>
@@ -46,7 +46,7 @@ export function ChecklistScoreCard({
           {score.criteria.map((c) => (
             <div key={c.key} className="flex items-start gap-2 text-[12.5px] leading-relaxed">
               <span
-                className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10.5px] font-bold"
+                className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
                 style={{
                   background: c.pass ? "rgba(47,158,92,.15)" : "rgba(108,102,86,.1)",
                   color: c.pass ? GOOD : "var(--text-muted)",
@@ -60,7 +60,7 @@ export function ChecklistScoreCard({
               </div>
             </div>
           ))}
-          {caveat && <p className="mt-1 text-[10.5px] leading-relaxed text-[var(--text-muted)]">{caveat}</p>}
+          {caveat && <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">{caveat}</p>}
         </div>
       )}
     </div>

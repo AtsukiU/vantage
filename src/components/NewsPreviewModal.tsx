@@ -95,18 +95,18 @@ export function NewsPreviewModal({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-5 pt-4">
-          {state === "loading" && <p className="text-[13px] text-[var(--text-muted)]">本文を読み込み中…</p>}
+          {state === "loading" && <p className="text-[12.5px] text-[var(--text-muted)]">本文を読み込み中…</p>}
 
           {state === "success" && contentHtml && (
             <div
-              className="text-[13px] leading-relaxed text-[var(--foreground)] [&_a]:text-[var(--accent)] [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-[var(--border-subtle)] [&_blockquote]:pl-3 [&_blockquote]:text-[var(--text-secondary)] [&_h1]:mt-4 [&_h1]:text-[15px] [&_h1]:font-bold [&_h2]:mt-4 [&_h2]:text-[15px] [&_h2]:font-bold [&_h3]:mt-3 [&_h3]:text-[13px] [&_h3]:font-bold [&_img]:my-3 [&_img]:rounded-[10px] [&_li]:ml-4 [&_ol]:my-2 [&_ol]:list-decimal [&_p]:mt-3 [&_p:first-child]:mt-0 [&_ul]:my-2 [&_ul]:list-disc"
+              className="text-[12.5px] leading-relaxed text-[var(--foreground)] [&_a]:text-[var(--accent)] [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-[var(--border-subtle)] [&_blockquote]:pl-3 [&_blockquote]:text-[var(--text-secondary)] [&_h1]:mt-4 [&_h1]:text-[15px] [&_h1]:font-bold [&_h2]:mt-4 [&_h2]:text-[15px] [&_h2]:font-bold [&_h3]:mt-3 [&_h3]:text-[12.5px] [&_h3]:font-bold [&_img]:my-3 [&_img]:rounded-[10px] [&_li]:ml-4 [&_ol]:my-2 [&_ol]:list-decimal [&_p]:mt-3 [&_p:first-child]:mt-0 [&_ul]:my-2 [&_ul]:list-disc"
               dangerouslySetInnerHTML={{ __html: contentHtml }}
             />
           )}
 
           {state === "failed" && (
             <div>
-              {description && <p className="text-[13px] leading-relaxed text-[var(--text-secondary)]">{description}</p>}
+              {description && <p className="text-[12.5px] leading-relaxed text-[var(--text-secondary)]">{description}</p>}
               <p className="mt-3 text-[11px] text-[var(--text-muted)]">
                 本文の自動取得に失敗しました(サイト側の制限などが原因の可能性があります)。元記事でご確認ください。
               </p>

@@ -194,7 +194,7 @@ export function StockDetailView({
   }
   if (detailError) {
     return (
-      <div className={`${CARD} text-[13px] text-[var(--price-up)]`}>
+      <div className={`${CARD} text-[12.5px] text-[var(--price-up)]`}>
         {detailError}
       </div>
     );
@@ -293,7 +293,7 @@ export function StockDetailView({
               </div>
               {metrics.dayChangePercent != null && (
                 <div
-                  className="text-[13px] font-bold tabular-nums"
+                  className="text-[12.5px] font-bold tabular-nums"
                   style={{ color: isUp ? "var(--price-up)" : "var(--price-down)" }}
                 >
                   {isUp ? "▲" : "▼"} {metrics.dayChangePercent.toFixed(2)}%
@@ -374,7 +374,7 @@ export function StockDetailView({
 
       {isEquity && committee && fundamentalRole && sentimentRole && macroRole && minervini && (
         <div className={`${CARD} mb-4`}>
-          <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">投資委員会</h3>
+          <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">投資委員会</h3>
           <CommitteeVerdictCard
             metrics={metrics}
             technicals={technicals}
@@ -396,7 +396,7 @@ export function StockDetailView({
           </div>
 
           <div className={CARD}>
-            <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">テクニカル分析</h3>
+            <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">テクニカル分析</h3>
             <div>
               {horizons.map((h, i) => (
                 <div
@@ -412,7 +412,7 @@ export function StockDetailView({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div
-                      className="mb-0.5 text-[13px] font-extrabold"
+                      className="mb-0.5 text-[12.5px] font-extrabold"
                       style={{ color: h.good ? "var(--status-good)" : "var(--foreground)" }}
                     >
                       {h.verdict}
@@ -425,7 +425,7 @@ export function StockDetailView({
           </div>
 
           <div className={CARD}>
-            <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">ポジションサイジング計算機</h3>
+            <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">ポジションサイジング計算機</h3>
             <PositionSizeCalculator currentPrice={metrics.price} currency={metrics.currency} />
           </div>
 
@@ -471,21 +471,21 @@ export function StockDetailView({
 
           {isEquity && (
             <div className={CARD}>
-              <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">業績推移(直近5期)</h3>
+              <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">業績推移(直近5期)</h3>
               <FinancialTrendChart data={financialTrend} currency={metrics.currency} />
             </div>
           )}
 
           {isEquity && (
             <div className={CARD}>
-              <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">他の投資家が見ている指標</h3>
+              <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">他の投資家が見ている指標</h3>
               <InvestorSignalsSection signals={signals} />
             </div>
           )}
 
           {isEquity && (
             <div className={CARD}>
-              <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">類似銘柄との比較</h3>
+              <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">類似銘柄との比較</h3>
               <PeerComparisonSection
                 peers={peers}
                 baseMetrics={{ per: metrics.per, pbr: metrics.pbr, roe: metrics.roe, dividendYield: metrics.dividendYield }}
@@ -496,11 +496,11 @@ export function StockDetailView({
 
           {isEquity ? (
             <div className={CARD}>
-              <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">ファンダメンタル分析</h3>
+              <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">ファンダメンタル分析</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="mb-2 text-[12.5px] font-extrabold text-[var(--price-up)]">良い点</div>
-                  <ul className="space-y-1 text-[13px] leading-relaxed text-[var(--foreground)]">
+                  <ul className="space-y-1 text-[12.5px] leading-relaxed text-[var(--foreground)]">
                     {insights.strengths.length === 0 && (
                       <li className="text-[var(--text-secondary)]">特筆すべき点はありません</li>
                     )}
@@ -511,7 +511,7 @@ export function StockDetailView({
                 </div>
                 <div>
                   <div className="mb-2 text-[12.5px] font-extrabold text-[var(--price-down)]">懸念点</div>
-                  <ul className="space-y-1 text-[13px] leading-relaxed text-[var(--foreground)]">
+                  <ul className="space-y-1 text-[12.5px] leading-relaxed text-[var(--foreground)]">
                     {insights.concerns.length === 0 && (
                       <li className="text-[var(--text-secondary)]">特筆すべき点はありません</li>
                     )}
@@ -532,7 +532,7 @@ export function StockDetailView({
         <div className="min-w-0 flex flex-col gap-4">
           {isEquity && (
             <div className={CARD}>
-              <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">主要指標</h3>
+              <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">主要指標</h3>
               <div className="grid grid-cols-2 gap-x-3 gap-y-4">
                 {gauges.map((g) => (
                   <RingGauge
@@ -550,7 +550,7 @@ export function StockDetailView({
           )}
 
           <div className={CARD}>
-            <h3 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">関連ニュース</h3>
+            <h3 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">関連ニュース</h3>
             {newsLoading && <div className="text-[12.5px] text-[var(--text-secondary)]">読み込み中…</div>}
             {!newsLoading && news.length === 0 && (
               <div className="text-[12.5px] text-[var(--text-secondary)]">関連ニュースが見つかりませんでした</div>
@@ -569,7 +569,7 @@ export function StockDetailView({
                   <div className="mb-1 text-[11px] text-[var(--text-secondary)]">
                     {item.source} ・ {relativeTimeJa(item.pubDate)}
                   </div>
-                  <div className="text-[13px] font-bold leading-snug text-[var(--foreground)]">{item.title}</div>
+                  <div className="text-[12.5px] font-bold leading-snug text-[var(--foreground)]">{item.title}</div>
                 </a>
               ))}
             </div>

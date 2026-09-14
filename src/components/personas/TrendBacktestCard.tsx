@@ -164,7 +164,7 @@ export function TrendBacktestCard() {
 
           <div className="mt-3">
             <BacktestChart points={result.points} />
-            <div className="mt-1.5 flex items-center justify-between text-[10.5px] text-[var(--text-muted)]">
+            <div className="mt-1.5 flex items-center justify-between text-[11px] text-[var(--text-muted)]">
               <span>{fmtDate(result.startDate)}</span>
               <span>{fmtDate(result.endDate)}</span>
             </div>
@@ -180,7 +180,7 @@ export function TrendBacktestCard() {
             </div>
           </div>
 
-          <p className="mt-2.5 text-[10.5px] leading-relaxed text-[var(--text-muted)]">
+          <p className="mt-2.5 text-[11px] leading-relaxed text-[var(--text-muted)]">
             対象銘柄({result.usedTickers.length}件): {result.usedTickers.join("、")}
             {result.excludedTickers.length > 0 && <> ※価格データ不足のため除外: {result.excludedTickers.join("、")}</>}
             。元手{fmtYen(result.startCapital)}、月末リバランス・均等配分の簡易モデルによる試算で、実際の運用アドバイザーの判断や将来の成績を保証するものではありません。

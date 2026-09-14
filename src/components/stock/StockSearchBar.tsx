@@ -110,7 +110,7 @@ export function StockSearchBar({
           }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
-          className="w-full bg-transparent text-[13px] text-[var(--foreground)] outline-none placeholder:text-[var(--text-secondary)]"
+          className="w-full bg-transparent text-[12.5px] text-[var(--foreground)] outline-none placeholder:text-[var(--text-secondary)]"
         />
       </div>
 
@@ -129,7 +129,7 @@ export function StockSearchBar({
                 onClick={() => selectResult(r)}
                 className="flex w-full items-center justify-between px-4 py-2.5 text-left transition hover:bg-[var(--fill-subtle)]"
               >
-                <span className="truncate text-[13px] font-semibold text-[var(--foreground)]">{r.name}</span>
+                <span className="truncate text-[12.5px] font-semibold text-[var(--foreground)]">{r.name}</span>
                 <span className="ml-3 shrink-0 font-mono text-[11px] text-[var(--text-secondary)]">{r.symbol}</span>
               </button>
             ))}

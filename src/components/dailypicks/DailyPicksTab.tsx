@@ -192,7 +192,7 @@ export function DailyPicksTab({
       <GlassPageShell>
         <div className={`${GLASS_CARD} mb-4`}>
           <div>
-            <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">本日の注目銘柄</h2>
+            <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">本日の注目銘柄</h2>
             <p className="mt-1 text-xs text-[var(--text-secondary)]">
               {view === "all"
                 ? "東証プライム市場(約1,550銘柄)+S&P500構成銘柄(約500銘柄)を合算し、ミネルヴィニ・CANSLIM・財務健全性・投資委員会の合議スコアから総合評価を出します。"
@@ -309,7 +309,70 @@ export function DailyPicksTab({
 
         {hasAnyRows && sorted.length > 0 && (
           <>
-            <div className={`${GLASS_CARD} overflow-x-auto p-0`}>
+            {/* スマホ幅では横スクロール前提の表ではなく、1銘柄1カードの縦積みリストにする
+                (価格・総合評価に絞り、RSなど優先度の低い情報は省いて画面内に収める)。 */}
+            <div className={`${GLASS_CARD} divide-y divide-[var(--border-faint)] overflow-hidden p-0 md:hidden`}>
+              {sorted.slice(0, showCount).map((r) => {
+                const up = (r.dayChangePercent ?? 0) >= 0;
+                const currencyPrefix = r.currency === "JPY" ? "¥" : r.currency === "USD" ? "$" : "";
+                return (
+                  <button
+                    key={`m-${r.sourceMarket}-${r.ticker}`}
+                    onClick={() => onOpenDetail(r.ticker, r.name ?? r.ticker)}
+                    className="flex w-full flex-col gap-1.5 px-4 py-3 text-left transition hover:bg-[var(--fill-subtle)]"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {view === "all" && (
+                            <span
+                              className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white"
+                              style={{ background: MARKET_TAG[r.sourceMarket].color }}
+                            >
+                              {MARKET_TAG[r.sourceMarket].label}
+                            </span>
+                          )}
+                          <span className="truncate font-semibold text-[var(--foreground)]">{r.name ?? r.ticker}</span>
+                        </div>
+                        <div className="font-mono text-[11px] text-[var(--text-secondary)]">{r.ticker}</div>
+                      </div>
+                      <OverallScoreBadge
+                        score={r.overallScore}
+                        grade={r.overallGrade}
+                        breakdown={{
+                          minerviniScore: r.minerviniScore,
+                          canslimScore: r.canslimScore,
+                          qualityScore: r.qualityScore,
+                          qualityTotal: r.qualityTotal,
+                          committeeAgree: r.committeeAgree,
+                          committeeTotal: r.committeeTotal,
+                          committeeRoles: r.committeeRoles,
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[15px] tabular-nums">
+                      <span className="text-[var(--foreground)]">
+                        {r.price != null ? `${currencyPrefix}${r.price.toLocaleString("ja-JP")}` : "—"}
+                      </span>
+                      <span className="font-semibold" style={{ color: r.dayChangePercent == null ? GLASS_TEXT2 : up ? GLASS_UP : GLASS_DOWN }}>
+                        {r.dayChangePercent != null ? `${up ? "▲" : "▼"} ${r.dayChangePercent.toFixed(2)}%` : "—"}
+                      </span>
+                    </div>
+                    {isCommitteeRecommended(r) && (
+                      <span
+                        className="inline-flex w-fit shrink-0 items-center gap-0.5 rounded-full bg-[var(--accent)]/15 px-1.5 py-0.5 text-[9px] font-bold text-[var(--accent-hover)]"
+                        title={`投資委員会 ${r.committeeAgree}/${r.committeeTotal}役が賛成(基準60%以上)`}
+                      >
+                        <Gavel size={9} strokeWidth={2.5} />
+                        委員会推奨 {r.committeeAgree}/{r.committeeTotal}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className={`${GLASS_CARD} hidden overflow-x-auto p-0 md:block`}>
               <table className="w-full min-w-[560px] text-sm">
                 <thead>
                   <tr className="border-b border-[var(--border-subtle)] text-left text-[11px] text-[var(--text-secondary)]">

@@ -42,7 +42,7 @@ export function GlassPageShell({
         </div>
       )}
       <div
-        className={`relative mx-auto w-full ${maxWidth} 2xl:max-w-[1700px] px-8 sm:px-10 pb-4 pt-8 sm:pt-10 ${
+        className={`relative mx-auto w-full ${maxWidth} 2xl:max-w-[1700px] px-4 pt-4 pb-3 sm:px-8 sm:pt-8 sm:pb-4 lg:px-10 lg:pt-10 ${
           // lg:max-h-[880px]は「13インチ級ノートPCならこの高さで収まるはず」という想定に
           // 過ぎない。中身が増えて実際にこの高さを超えた時、以前はlg:overflow-hidden(親側)
           // で問答無用に切り取ってしまい、画面外に出た部分が二度と見えなくなっていた。

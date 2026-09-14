@@ -64,7 +64,7 @@ export function PortfolioValueChart({ history, showLegend = true }: { history: P
         <path d={totalLinePath} fill="none" stroke={STOCK_COLOR} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
         <circle cx={totalTopPoints[totalTopPoints.length - 1].x} cy={totalTopPoints[totalTopPoints.length - 1].y} r="3" fill={STOCK_COLOR} />
       </svg>
-      <div className="mt-1 flex justify-between text-[10.5px] text-[var(--text-muted)]">
+      <div className="mt-1 flex justify-between text-[11px] text-[var(--text-muted)]">
         <span>{first.date}</span>
         <span>{last.date}</span>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { NewsFeed } from "@/components/NewsFeed";
@@ -17,7 +17,7 @@ import { WatchlistTab } from "@/components/watchlist/WatchlistTab";
 import { SettingsTab } from "@/components/settings/SettingsTab";
 import type { Market } from "@/lib/feeds";
 import { StockSearchBar } from "@/components/stock/StockSearchBar";
-import { LayoutGrid, Newspaper, Star, Scale, Wallet, Users, Eye, Settings, type LucideIcon } from "lucide-react";
+import { LayoutGrid, Newspaper, Star, Scale, Wallet, Users, Eye, Settings, Menu, X, type LucideIcon } from "lucide-react";
 
 type TabKey = "dashboard" | "news" | "stock" | "portfolio" | "compare" | "dailypicks" | "personas" | "watchlist" | "settings";
 
@@ -97,31 +97,10 @@ function HomeContent() {
   });
   const [newsRefreshSignal, setNewsRefreshSignal] = useState(0);
 
-  // タブが横スクロールしないと全部見えない時だけ、隠れているタブがあることを示す
-  // フェード(端をぼかす)を出す。常時フェードだと入りきっている時に不自然なので、
-  // 実際にスクロール可能な時だけ表示する。
-  const navRef = useRef<HTMLElement>(null);
-  const [navScroll, setNavScroll] = useState({ left: false, right: false });
-
-  useEffect(() => {
-    const el = navRef.current;
-    if (!el) return;
-    function update() {
-      if (!el) return;
-      setNavScroll({
-        left: el.scrollLeft > 2,
-        right: el.scrollLeft + el.clientWidth < el.scrollWidth - 2,
-      });
-    }
-    update();
-    el.addEventListener("scroll", update);
-    const observer = new ResizeObserver(update);
-    observer.observe(el);
-    return () => {
-      el.removeEventListener("scroll", update);
-      observer.disconnect();
-    };
-  }, []);
+  // スマホ幅ではサイドバーの代わりにヘッダーのハンバーガーボタンから開く
+  // ドロップダウンメニューでタブ切り替えを行う(アイコンだけの横スクロール一覧は
+  // タップ操作が難しいという指摘を受けて、よくあるスマホアプリ式の展開メニューに変更)。
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   function openStockDetail(symbol: string, name: string) {
     navigate({ tab: "stock", symbol, name });
@@ -216,7 +195,7 @@ function HomeContent() {
                   </span>
                 )}
                 <Icon size={isDashboard ? 19 : 22} strokeWidth={2.15} className="relative z-10" />
-                <span className={`relative z-10 ${isDashboard ? "text-[13px] font-semibold leading-tight" : "text-[10.5px] font-semibold leading-tight"}`}>
+                <span className={`relative z-10 ${isDashboard ? "text-[12.5px] font-semibold leading-tight" : "text-[11px] font-semibold leading-tight"}`}>
                   {tab.label}
                 </span>
               </motion.button>
@@ -226,64 +205,23 @@ function HomeContent() {
         <div className="relative mt-3 shrink-0">
           <DailyScanBanner compact onStart={() => setNewsRefreshSignal((n) => n + 1)} />
         </div>
-        <div className="nav-tile relative mt-3 rounded-xl bg-white/50 px-3 py-2.5 text-[10.5px] leading-relaxed text-[var(--text-secondary)]">
+        <div className="nav-tile relative mt-3 rounded-xl bg-white/50 px-3 py-2.5 text-[11px] leading-relaxed text-[var(--text-secondary)]">
           <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
           保有データはこの端末に保存(Upstash設定時は端末間で同期)
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="relative shrink-0 overflow-hidden border-b border-[var(--border-subtle)] bg-[var(--background)] md:hidden">
+        <header className="relative shrink-0 border-b border-[var(--border-subtle)] bg-[var(--background)] md:hidden">
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="glow-blob absolute -left-16 -top-24 h-56 w-56 rounded-full bg-[var(--accent)] opacity-[0.14] blur-[70px]" />
             <div className="glow-blob absolute -right-12 -top-20 h-52 w-52 rounded-full bg-[var(--accent-strong)] opacity-[0.14] blur-[70px]" />
           </div>
-          <div className="nav-tile relative flex flex-col gap-2 bg-white/70 px-4 py-2.5 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-3">
+          <div className="nav-tile relative flex items-center justify-between gap-3 bg-white/70 px-4 py-2.5 backdrop-blur">
             <h1 className="shrink-0 whitespace-nowrap text-base font-extrabold tracking-wide text-[var(--accent)] sm:text-lg">
               VANTAGE<span className="text-[var(--accent-strong)]">.</span>
             </h1>
-            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <nav
-                ref={navRef}
-                className="scrollbar-none flex min-w-0 gap-1 overflow-x-auto rounded-full bg-[var(--fill-pill)] p-1"
-                style={
-                  navScroll.left || navScroll.right
-                    ? {
-                        WebkitMaskImage: `linear-gradient(to right, ${navScroll.left ? "transparent, black 16px" : "black"}, ${
-                          navScroll.right ? "black calc(100% - 16px), transparent" : "black"
-                        })`,
-                        maskImage: `linear-gradient(to right, ${navScroll.left ? "transparent, black 16px" : "black"}, ${
-                          navScroll.right ? "black calc(100% - 16px), transparent" : "black"
-                        })`,
-                      }
-                    : undefined
-                }
-              >
-                {TABS.map((tab) => {
-                  const count = tab.key === "news" ? counts[newsMarket] : null;
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.key}
-                      onClick={() => setActive(tab.key)}
-                      title={tab.label}
-                      className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium transition xl:px-3 ${
-                        active === tab.key
-                          ? "bg-[var(--surface)] text-[var(--accent)] shadow-sm"
-                          : "text-[var(--text-secondary)] hover:text-[var(--foreground)]"
-                      }`}
-                    >
-                      <Icon size={15} strokeWidth={2.25} />
-                      <span className="hidden lg:inline">{tab.label}</span>
-                      {count !== null && (
-                        <span className="rounded-full bg-[var(--border-subtle)] px-1.5 py-0.5 text-xs text-[var(--text-secondary)]">
-                          {count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </nav>
+            <div className="flex shrink-0 items-center gap-1.5">
               <button
                 onClick={() => setActive("settings")}
                 title="設定"
@@ -293,9 +231,52 @@ function HomeContent() {
               >
                 <Settings size={16} strokeWidth={2.25} />
               </button>
+              <button
+                onClick={() => setMobileMenuOpen((v) => !v)}
+                title="メニュー"
+                aria-expanded={mobileMenuOpen}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--text-secondary)] transition hover:bg-white/60 hover:text-[var(--foreground)]"
+              >
+                {mobileMenuOpen ? <X size={18} strokeWidth={2.25} /> : <Menu size={18} strokeWidth={2.25} />}
+              </button>
             </div>
           </div>
+
+          {mobileMenuOpen && (
+            <nav className="absolute inset-x-0 top-full z-40 max-h-[70vh] overflow-y-auto border-b border-[var(--border-subtle)] bg-[var(--surface)] p-2 shadow-[0_16px_28px_-10px_rgba(28,27,24,0.28)]">
+              {TABS.map((tab) => {
+                const count = tab.key === "news" ? counts[newsMarket] : null;
+                const Icon = tab.icon;
+                const isActive = active === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => {
+                      setActive(tab.key);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${
+                      isActive
+                        ? "bg-[var(--accent)]/15 text-[var(--accent)]"
+                        : "text-[var(--text-secondary)] hover:bg-[var(--fill-subtle)] hover:text-[var(--foreground)]"
+                    }`}
+                  >
+                    <Icon size={18} strokeWidth={2.25} />
+                    {tab.label}
+                    {count !== null && (
+                      <span className="ml-auto rounded-full bg-[var(--border-subtle)] px-1.5 py-0.5 text-xs text-[var(--text-secondary)]">
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          )}
         </header>
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+        )}
 
         <main className={`min-h-0 flex-1 overflow-y-auto bg-[var(--background)] ${active === "dashboard" ? "lg:overflow-hidden" : ""}`}>
         <DashboardTab hidden={active !== "dashboard"} onOpenDetail={openStockDetail} onNavigateTab={setActive} refreshSignal={newsRefreshSignal} />

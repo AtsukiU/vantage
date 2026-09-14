@@ -74,7 +74,7 @@ export function PositionSizeCalculator({
   });
 
   const inputBase =
-    "w-full rounded-lg border border-[var(--border-subtle)] px-2.5 py-1.5 text-[13px] font-mono outline-none focus:border-[var(--accent)]";
+    "w-full rounded-lg border border-[var(--border-subtle)] px-2.5 py-1.5 text-[12.5px] font-mono outline-none focus:border-[var(--accent)]";
 
   return (
     <div>
@@ -123,36 +123,36 @@ export function PositionSizeCalculator({
         <>
           <div className="mt-4 grid grid-cols-2 gap-3 border-t border-[var(--border-subtle)] pt-3 sm:grid-cols-4">
             <div>
-              <div className="text-[10.5px] text-[var(--text-muted)]">最大株数</div>
+              <div className="text-[11px] text-[var(--text-muted)]">最大株数</div>
               <div className="font-mono text-[15px] font-extrabold text-[var(--foreground)]">{result.maxShares.toLocaleString()}株</div>
             </div>
             <div>
-              <div className="text-[10.5px] text-[var(--text-muted)]">ポジション評価額</div>
+              <div className="text-[11px] text-[var(--text-muted)]">ポジション評価額</div>
               <div className="font-mono text-[15px] font-extrabold text-[var(--foreground)]">{fmt(result.positionValue)}</div>
-              <div className="text-[10.5px] text-[var(--text-secondary)]">口座の{result.positionPercentOfAccount}%</div>
+              <div className="text-[11px] text-[var(--text-secondary)]">口座の{result.positionPercentOfAccount}%</div>
             </div>
             <div>
-              <div className="text-[10.5px] text-[var(--text-muted)]">損切り幅</div>
+              <div className="text-[11px] text-[var(--text-muted)]">損切り幅</div>
               <div className="font-mono text-[15px] font-extrabold text-[var(--price-down)]">-{result.stopLossPercent}%</div>
-              <div className="text-[10.5px] text-[var(--text-secondary)]">1株あたり{fmt(result.riskPerShare)}</div>
+              <div className="text-[11px] text-[var(--text-secondary)]">1株あたり{fmt(result.riskPerShare)}</div>
             </div>
             <div>
-              <div className="text-[10.5px] text-[var(--text-muted)]">最大損失額</div>
+              <div className="text-[11px] text-[var(--text-muted)]">最大損失額</div>
               <div className="font-mono text-[15px] font-extrabold text-[var(--price-down)]">{fmt(result.totalRiskAmount)}</div>
             </div>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-3 border-t border-[var(--border-subtle)] pt-3 sm:grid-cols-4">
             <div>
-              <div className="text-[10.5px] text-[var(--text-muted)]">利確ライン</div>
+              <div className="text-[11px] text-[var(--text-muted)]">利確ライン</div>
               <div className="font-mono text-[15px] font-extrabold text-[var(--price-up)]">{fmt(result.targetPrice)}</div>
-              <div className="text-[10.5px] text-[var(--text-secondary)]">+{result.takeProfitPercent}%</div>
+              <div className="text-[11px] text-[var(--text-secondary)]">+{result.takeProfitPercent}%</div>
             </div>
             <div>
-              <div className="text-[10.5px] text-[var(--text-muted)]">想定利益額</div>
+              <div className="text-[11px] text-[var(--text-muted)]">想定利益額</div>
               <div className="font-mono text-[15px] font-extrabold text-[var(--price-up)]">{fmt(result.potentialGainTotal)}</div>
             </div>
             <div>
-              <div className="text-[10.5px] text-[var(--text-muted)]">リスクリワード比</div>
+              <div className="text-[11px] text-[var(--text-muted)]">リスクリワード比</div>
               <div className="font-mono text-[15px] font-extrabold text-[var(--foreground)]">1 : {Number(rewardMultiple).toFixed(1)}</div>
             </div>
           </div>
@@ -162,7 +162,7 @@ export function PositionSizeCalculator({
           口座評価額・エントリー価格・損切りライン(エントリーより低い価格)を入力してください。
         </p>
       )}
-      <p className="mt-2 text-[10.5px] leading-relaxed text-[var(--text-muted)]">
+      <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-muted)]">
         「1トレードあたり口座の1〜2%までしかリスクを取らない」という考え方に基づく計算です。利確ラインは損切り幅に対するリスクリワード比から逆算した目安で、必ず届く価格ではありません。買いポジション(ロング)前提で、空売りには対応していません。
       </p>
     </div>

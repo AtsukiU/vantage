@@ -126,8 +126,8 @@ export function CommitteeVerdictCard({
                 className="rounded-lg px-2.5 py-2 text-center"
                 style={{ background: value === true ? "rgba(47,158,92,.1)" : "var(--fill-pill)" }}
               >
-                <div className="text-[10.5px] text-[var(--text-secondary)]">{ROLE_LABEL[role]}</div>
-                <div className="mt-0.5 text-[13px] font-extrabold" style={{ color: value === true ? GOOD : NEUTRAL }}>
+                <div className="text-[11px] text-[var(--text-secondary)]">{ROLE_LABEL[role]}</div>
+                <div className="mt-0.5 text-[12.5px] font-extrabold" style={{ color: value === true ? GOOD : NEUTRAL }}>
                   {value === true ? "賛成" : value === false ? "反対/中立" : "判定中…"}
                 </div>
               </div>
@@ -137,20 +137,20 @@ export function CommitteeVerdictCard({
 
       <div className="mt-2 flex items-center gap-2 rounded-lg border border-dashed border-[var(--border-subtle)] px-2.5 py-1.5">
         <span className="shrink-0 rounded-full bg-[var(--fill-pill)] px-1.5 py-0.5 text-[9px] font-bold text-[var(--text-secondary)]">参考(集計外)</span>
-        <span className="text-[10.5px] text-[var(--text-secondary)]">PM役</span>
+        <span className="text-[11px] text-[var(--text-secondary)]">PM役</span>
         <span className="ml-auto text-[12.5px] font-extrabold" style={{ color: committee.roles.pm === true ? GOOD : NEUTRAL }}>
           {committee.roles.pm === true ? "賛成" : committee.roles.pm === false ? "反対/中立" : "判定中…"}
         </span>
       </div>
 
-      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[10.5px] text-[var(--text-muted)]">
+      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-[var(--text-muted)]">
         <span>ファンダメンタル {fundamentalRole.passCount}/{fundamentalRole.total}</span>
         <span>テクニカル(ミネルヴィニ) {minervini.passCount}/{minervini.total}</span>
         <span>センチメント {sentimentRole.passCount}/{sentimentRole.total}</span>
         <span>マクロ {macroRole.passCount}/{macroRole.total}</span>
         <span>安全域 {marginOfSafetyRatio != null ? `現在値/グレアム数 ${marginOfSafetyRatio.toFixed(2)}倍` : "算出不可"}</span>
       </div>
-      <p className="mt-1.5 text-[10.5px] text-[var(--text-muted)]">PM役は保有中のポートフォリオ(セクター・通貨集中度)から判定する参考情報で、上の合議人数(agree/total)には含まれません。保有銘柄がない場合は対象外として賛成扱いになります。</p>
+      <p className="mt-1.5 text-[11px] text-[var(--text-muted)]">PM役は保有中のポートフォリオ(セクター・通貨集中度)から判定する参考情報で、上の合議人数(agree/total)には含まれません。保有銘柄がない場合は対象外として賛成扱いになります。</p>
 
       {error && (
         <p className="mt-3 rounded-lg bg-[var(--price-up)]/10 px-3 py-2 text-[11px] leading-relaxed text-[var(--price-up)]">{error}</p>
@@ -162,7 +162,7 @@ export function CommitteeVerdictCard({
             <div className="mb-1 text-[11px] font-extrabold text-[var(--accent)]">委員会の結論</div>
             <div className="text-[12.5px] leading-relaxed text-[var(--foreground)]">{verdict}</div>
           </div>
-          <p className="mt-2 text-[10.5px] leading-relaxed text-[var(--text-muted)]">
+          <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-muted)]">
             Claudeが生成した結論のシミュレーションです。売買の推奨ではなく、実際の判断・発注はご自身で行ってください。
           </p>
         </div>

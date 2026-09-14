@@ -146,7 +146,7 @@ export function DailyScanLoadingOverlay({ onScanComplete }: { onScanComplete?: (
                   transition={{ duration: 0.5, ease: "easeOut" }}
                 />
               </div>
-              <div className="mt-1 text-right text-[10.5px] font-semibold text-white/50">{pct}%</div>
+              <div className="mt-1 text-right text-[11px] font-semibold text-white/50">{pct}%</div>
 
               <div className="mt-5 flex min-h-[56px] items-center justify-center rounded-[10px] bg-white/5 px-3 py-2.5">
                 <AnimatePresence mode="wait">
@@ -166,7 +166,7 @@ export function DailyScanLoadingOverlay({ onScanComplete }: { onScanComplete?: (
 
               <button
                 onClick={() => setDismissed(true)}
-                className="mt-4 text-[10.5px] font-semibold text-white/40 underline decoration-dotted transition hover:text-white/70"
+                className="mt-4 text-[11px] font-semibold text-white/40 underline decoration-dotted transition hover:text-white/70"
               >
                 バックグラウンドで続ける
               </button>

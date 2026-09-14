@@ -53,7 +53,7 @@ export function FxOutlookCard() {
       <div className={`${GLASS_CARD} mb-4`}>
         <div className="flex items-center gap-2">
           <ArrowLeftRight size={15} strokeWidth={2.25} className="text-[var(--accent)]" />
-          <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">為替観測(円安/円高)</h2>
+          <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">為替観測(円安/円高)</h2>
         </div>
         <p className="mt-2 text-xs text-[var(--text-secondary)]">読み込み中…</p>
       </div>
@@ -68,7 +68,7 @@ export function FxOutlookCard() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ArrowLeftRight size={15} strokeWidth={2.25} className="text-[var(--accent)]" />
-          <h2 className="text-[13px] font-extrabold text-[var(--foreground)]">為替観測(円安/円高)</h2>
+          <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">為替観測(円安/円高)</h2>
         </div>
         <span className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ backgroundColor: color }}>
           {outlook.phase}
@@ -114,7 +114,7 @@ export function FxOutlookCard() {
           ))}
         </ul>
       </div>
-      <p className="mt-2 text-[10.5px] text-[var(--text-muted)]">為替の方向性だけを見た参考情報です。個別銘柄の業績・バリュエーションと合わせて判断してください。</p>
+      <p className="mt-2 text-[11px] text-[var(--text-muted)]">為替の方向性だけを見た参考情報です。個別銘柄の業績・バリュエーションと合わせて判断してください。</p>
     </div>
   );
 }

@@ -53,7 +53,7 @@ export function StockTab({ hidden, selection, onSelectionChange }: StockTabProps
             onOpenDetail={(symbol, name) => onSelectionChange({ symbol, name })}
           />
         ) : (
-          <div className="rounded-[18px] border border-dashed border-[var(--border-subtle)] bg-white/60 p-10 text-center text-[13px] text-[var(--text-secondary)]">
+          <div className="rounded-[18px] border border-dashed border-[var(--border-subtle)] bg-white/60 p-10 text-center text-[12.5px] text-[var(--text-secondary)]">
             ティッカーまたは銘柄名で検索してください(例: 7203.T、トヨタ、AAPL、または上のコモディティ)
           </div>
         )}

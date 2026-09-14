@@ -108,7 +108,7 @@ export function CompareTab({
     <section hidden={hidden} className="h-full">
       <GlassPageShell>
         <div className={`${GLASS_CARD} mb-4`}>
-          <h2 className="mb-3 text-[13px] font-extrabold text-[var(--foreground)]">
+          <h2 className="mb-3 text-[12.5px] font-extrabold text-[var(--foreground)]">
             銘柄比較 <span className="font-mono font-normal text-[var(--text-secondary)]">(最大{MAX_SLOTS}銘柄)</span>
           </h2>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -118,7 +118,7 @@ export function CompareTab({
                   <div className="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--fill-subtle)] px-3 py-2">
                     <div className="min-w-0">
                       <div className="truncate text-[12.5px] font-semibold text-[var(--foreground)]">{slot.name}</div>
-                      <div className="font-mono text-[10.5px] text-[var(--text-secondary)]">{slot.symbol}</div>
+                      <div className="font-mono text-[11px] text-[var(--text-secondary)]">{slot.symbol}</div>
                     </div>
                     <button onClick={() => setSlot(i, null)} className="ml-2 shrink-0 text-[var(--text-muted)] hover:text-red-600">
                       ✕
@@ -141,12 +141,12 @@ export function CompareTab({
         </div>
 
         {readyCount < 2 ? (
-          <div className="rounded-[18px] border border-dashed border-[var(--border-subtle)] bg-white/60 p-10 text-center text-[13px] text-[var(--text-secondary)]">
+          <div className="rounded-[18px] border border-dashed border-[var(--border-subtle)] bg-white/60 p-10 text-center text-[12.5px] text-[var(--text-secondary)]">
             {loading ? "取得中…" : "2銘柄以上を選択すると比較できます"}
           </div>
         ) : (
           <div className={`${GLASS_CARD} overflow-x-auto p-0`}>
-            <table className="w-full min-w-[480px] text-[13px]">
+            <table className="w-full min-w-[480px] text-[12.5px]">
               <thead>
                 <tr className="border-b border-[var(--border-subtle)] text-left text-[11px] text-[var(--text-secondary)]">
                   <th className="px-4 py-2.5 font-medium">指標</th>

@@ -218,14 +218,14 @@ export function NewsFeed({
               <div className="glow-blob absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-[var(--accent-strong)] opacity-25 blur-[60px]" />
             </div>
             <div className="relative">
-              <span className="inline-block rounded-full bg-[var(--accent-strong)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--foreground)]">
+              <span className="inline-block rounded-full bg-[var(--accent-strong)] px-2.5 py-1 text-[11px] font-bold text-[var(--foreground)]">
                 {NEWS_CATEGORY_LABEL[heroEntry.category]}
               </span>
-              <h3 className="mt-3 max-w-2xl text-[19px] font-extrabold leading-snug text-white sm:text-[22px]">
+              <h3 className="mt-3 line-clamp-2 max-w-2xl text-[19px] font-extrabold leading-snug text-white sm:text-[22px]">
                 {tr(heroEntry.item.title)}
               </h3>
               {heroEntry.item.description && (
-                <p className="mt-2 max-w-2xl text-[12.5px] leading-relaxed text-white/70">{tr(heroEntry.item.description)}</p>
+                <p className="mt-2 line-clamp-2 max-w-2xl text-[12.5px] leading-relaxed text-white/70">{tr(heroEntry.item.description)}</p>
               )}
               <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-white/60">
                 <span>{heroEntry.item.source}</span>
@@ -247,14 +247,14 @@ export function NewsFeed({
                     <div className="glow-blob absolute -bottom-8 -left-6 h-20 w-20 rounded-full bg-[var(--accent-strong)] opacity-30 blur-[30px]" />
                   </div>
                   <div className="relative">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent-strong)] font-mono text-[10.5px] font-bold text-[var(--foreground)]">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent-strong)] font-mono text-[11px] font-bold text-[var(--foreground)]">
                       {i + 1}
                     </span>
-                    <p className="mt-2 text-[15px] font-bold leading-snug text-white">{tr(item.title)}</p>
+                    <p className="mt-2 line-clamp-2 text-[15px] font-bold leading-snug text-white">{tr(item.title)}</p>
                     {item.description && (
-                      <p className="mt-1.5 text-[11px] leading-relaxed text-white/60">{tr(item.description)}</p>
+                      <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-white/60">{tr(item.description)}</p>
                     )}
-                    <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[10.5px] text-white/50">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-white/50">
                       <span className="rounded-full bg-white/10 px-1.5 py-0.5 font-medium text-white/80">
                         {NEWS_CATEGORY_LABEL[category]}
                       </span>
@@ -274,9 +274,9 @@ export function NewsFeed({
                     onClick={() => setPreviewItem(item)}
                     className="group flex h-full w-full flex-col rounded-[14px] border border-[var(--border-subtle)] bg-[var(--card-bg)] px-4 py-3 text-left backdrop-blur-[var(--card-blur)] transition hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
                   >
-                    <p className="font-medium leading-snug text-[var(--foreground)] group-hover:text-[var(--accent)]">{tr(item.title)}</p>
+                    <p className="line-clamp-2 font-medium leading-snug text-[var(--foreground)] group-hover:text-[var(--accent)]">{tr(item.title)}</p>
                     {item.description && (
-                      <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">{tr(item.description)}</p>
+                      <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-[var(--text-muted)]">{tr(item.description)}</p>
                     )}
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
                       <span className={`rounded-full px-2 py-0.5 font-medium ${NEWS_CATEGORY_COLOR[category]}`}>
@@ -304,7 +304,7 @@ export function NewsFeed({
                     className="flex w-full items-center gap-3 border-b border-[var(--fill-pill)] px-4 py-2 text-left text-[12.5px] last:border-none hover:bg-[var(--fill-subtle)]"
                   >
                     <span className="min-w-0 flex-1 truncate text-[var(--foreground)]">{tr(item.title)}</span>
-                    <span className="shrink-0 text-[10.5px] text-[var(--text-muted)]">{relativeTimeJa(item.pubDate)}</span>
+                    <span className="shrink-0 text-[11px] text-[var(--text-muted)]">{relativeTimeJa(item.pubDate)}</span>
                   </button>
                 ))}
               </div>
