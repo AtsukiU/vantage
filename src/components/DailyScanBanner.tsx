@@ -180,7 +180,7 @@ export function DailyScanBanner({ onStart, compact = false }: { onStart?: () => 
         <p className="mt-1 text-xs text-[var(--text-secondary)]">
           日本株・米国株をスキャン中です({doneCount}/2市場完了)。他のタブに移動しても処理は続きます。
         </p>
-        <div className="mt-2.5">
+        <div className="mt-3">
           <div className="mb-1 flex justify-between text-[11px] text-[var(--text-secondary)]">
             <span>全体: {progress.done} / {progress.total}銘柄</span>
             <span>{progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0}%</span>

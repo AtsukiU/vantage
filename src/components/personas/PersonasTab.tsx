@@ -152,10 +152,10 @@ export function PersonasTab({
                   value={cashInput}
                   onChange={(e) => setCashInput(e.target.value)}
                   placeholder="1000000"
-                  className="w-32 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-[12.5px]"
+                  className="w-32 rounded-lg border border-[var(--border-subtle)] px-2.5 py-1.5 text-[12.5px]"
                   autoFocus
                 />
-                <button onClick={handleSaveCash} className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-[11px] font-semibold text-white">
+                <button onClick={handleSaveCash} className="rounded-full bg-[var(--accent)] px-2.5 py-1.5 text-[11px] font-semibold text-white">
                   保存
                 </button>
                 <button onClick={() => setEditingCash(false)} className="text-[11px] text-[var(--text-muted)] hover:text-[var(--foreground)]">

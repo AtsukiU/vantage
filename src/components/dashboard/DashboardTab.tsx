@@ -809,6 +809,10 @@ export function DashboardTab({
   const nasdaq = quotes.find((q) => q.label === "NASDAQ");
   const nyDow = quotes.find((q) => q.label === "NYダウ");
   const vix = quotes.find((q) => q.label === "VIX");
+  const gold = quotes.find((q) => q.label === "金");
+  const silver = quotes.find((q) => q.label === "銀");
+  const oil = quotes.find((q) => q.label === "原油");
+  const longBond = quotes.find((q) => q.label === "長期債");
   const sectorSegments = sectorBreakdown
     .slice()
     .sort((a, b) => b.pct - a.pct)
@@ -1004,6 +1008,10 @@ export function DashboardTab({
                         { label: "NASDAQ", price: nasdaq?.price ?? null, format: fmt, changePercent: nasdaq?.changePercent ?? null, changePercentMonth: nasdaq?.changePercentMonth ?? null },
                         { label: "NYダウ", price: nyDow?.price ?? null, format: fmt, changePercent: nyDow?.changePercent ?? null, changePercentMonth: nyDow?.changePercentMonth ?? null },
                         { label: "VIX", price: vix?.price ?? null, format: (n) => n.toFixed(2), changePercent: vix?.changePercent ?? null, changePercentMonth: vix?.changePercentMonth ?? null },
+                        { label: "金", price: gold?.price ?? null, format: (n) => `$${n.toFixed(2)}`, changePercent: gold?.changePercent ?? null, changePercentMonth: gold?.changePercentMonth ?? null },
+                        { label: "銀", price: silver?.price ?? null, format: (n) => `$${n.toFixed(2)}`, changePercent: silver?.changePercent ?? null, changePercentMonth: silver?.changePercentMonth ?? null },
+                        { label: "原油", price: oil?.price ?? null, format: (n) => `$${n.toFixed(2)}`, changePercent: oil?.changePercent ?? null, changePercentMonth: oil?.changePercentMonth ?? null },
+                        { label: "長期債", price: longBond?.price ?? null, format: (n) => `$${n.toFixed(2)}`, changePercent: longBond?.changePercent ?? null, changePercentMonth: longBond?.changePercentMonth ?? null },
                       ]}
                     />
                   </div>

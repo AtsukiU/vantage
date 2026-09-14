@@ -11,6 +11,10 @@ export const TICKER_SYMBOLS: QuoteSymbol[] = [
   { symbol: "^DJI", label: "NYダウ" },
   { symbol: "^IXIC", label: "NASDAQ" },
   { symbol: "^VIX", label: "VIX" },
+  { symbol: "GLD", label: "金" },
+  { symbol: "SLV", label: "銀" },
+  { symbol: "CL=F", label: "原油" },
+  { symbol: "TLT", label: "長期債" },
 ];
 
 export interface Quote {
