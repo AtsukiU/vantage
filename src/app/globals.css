@@ -365,6 +365,30 @@ body {
   display: none;
 }
 
+/* iPhoneなど狭い画面での可読性のため、細かいラベル・補足文字はモバイル幅だけ少し拡大する
+   (どのコンポーネントで使っていても一括で効くよう、Tailwindの任意値クラスを直接上書きする。
+   PC/タブレット幅の見た目はこれまで通り変えない)。 */
+@media (max-width: 767px) {
+  .text-\[9px\] {
+    font-size: 10px;
+  }
+  .text-\[11px\] {
+    font-size: 12px;
+  }
+  .text-\[12\.5px\] {
+    font-size: 13.5px;
+  }
+
+  /* iOS Safariはform要素のfont-sizeが16px未満だとフォーカス時に勝手にページを拡大する。
+     検索窓や数値入力欄をタップするたびにズームされる体験を防ぐため、モバイル幅では
+     どの入力欄も最低16pxを保証する(見た目のサイズ差は他の余白調整で吸収する)。 */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 @keyframes ticker {
   from {
     transform: translateX(0);

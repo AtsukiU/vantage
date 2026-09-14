@@ -162,9 +162,12 @@ export function PositionSizeCalculator({
           口座評価額・エントリー価格・損切りライン(エントリーより低い価格)を入力してください。
         </p>
       )}
-      <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-muted)]">
-        「1トレードあたり口座の1〜2%までしかリスクを取らない」という考え方に基づく計算です。利確ラインは損切り幅に対するリスクリワード比から逆算した目安で、必ず届く価格ではありません。買いポジション(ロング)前提で、空売りには対応していません。
-      </p>
+      <details className="mt-2 text-[11px] text-[var(--text-muted)]">
+        <summary className="cursor-pointer select-none">この計算方法について</summary>
+        <p className="mt-1 leading-relaxed">
+          「1トレードあたり口座の1〜2%までしかリスクを取らない」という考え方に基づく計算です。利確ラインは損切り幅に対するリスクリワード比から逆算した目安で、必ず届く価格ではありません。買いポジション(ロング)前提で、空売りには対応していません。
+        </p>
+      </details>
     </div>
   );
 }

@@ -129,8 +129,9 @@ export function PersonasTab({
             <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">運用アドバイザー</h2>
           </div>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">
-            7人の仮想アドバイザー(トレンド/総合スコア/バリュー/リスク管理/インカム/イベント警戒/統括マネージャー)が、あなたの実際の保有銘柄(ポートフォリオタブ)と「本日の注目銘柄」を見て、
-            <span className="font-semibold text-[var(--foreground)]">売った方がいい銘柄・新規の買い候補と推奨株数</span>を助言します。架空資金の売買は行わず、実際の保有・評価額を基準に計算します。
+            7人の仮想アドバイザーがあなたの保有銘柄・本日の注目銘柄を見て、
+            <span className="font-semibold text-[var(--foreground)]">売却/新規買いの候補と推奨株数</span>
+            を助言します(実際の売買は行いません)。
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button onClick={loadAdvice} disabled={loading} className={GLASS_BTN_PRIMARY}>
@@ -218,7 +219,7 @@ export function PersonasTab({
                       <span className="shrink-0 rounded-full bg-[var(--accent)] px-2 py-0.5 text-[9px] font-bold text-white">最終決定</span>
                     )}
                   </div>
-                  <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">{def.description}</p>
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-[var(--text-muted)]" title={def.description}>{def.description}</p>
 
                   <div className="mt-3">
                     <div className="mb-1 flex items-center gap-1 text-[11px] font-bold text-[var(--accent)]">

@@ -115,11 +115,14 @@ export function TrendBacktestCard() {
 
   return (
     <div>
-      <p className="text-[11px] leading-relaxed text-[var(--text-secondary)]">
-        委員会スコアなどアドバイザーの実際の判断材料は「今日時点」の値しか持たないため、過去に遡って正確に再現することはできません。代わりに、5年分の実データが取れる株価だけを使い、
-        <span className="font-semibold text-[var(--foreground)]">保有銘柄が200日移動平均線を上回っている月だけ均等配分で保有し、下回っている月はその分を現金で待機する</span>
-        というトレンドフォロー型の簡易ルールで過去5年をシミュレーションし、S&amp;P500の実績と比較します。為替・配当・手数料は考慮していません。
-      </p>
+      <details className="text-[11px] text-[var(--text-secondary)]">
+        <summary className="cursor-pointer select-none">この検証方法について</summary>
+        <p className="mt-1 leading-relaxed">
+          委員会スコアなどアドバイザーの実際の判断材料は「今日時点」の値しか持たないため、過去に遡って正確に再現することはできません。代わりに、5年分の実データが取れる株価だけを使い、
+          <span className="font-semibold text-[var(--foreground)]">保有銘柄が200日移動平均線を上回っている月だけ均等配分で保有し、下回っている月はその分を現金で待機する</span>
+          というトレンドフォロー型の簡易ルールで過去5年をシミュレーションし、S&amp;P500の実績と比較します。為替・配当・手数料は考慮していません。
+        </p>
+      </details>
 
       <div className="mt-2.5 flex flex-wrap items-center gap-3">
         <button onClick={run} disabled={running} className={GLASS_BTN_GHOST}>
