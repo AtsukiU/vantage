@@ -119,8 +119,10 @@ function exitReasonFor(id: PersonaId, h: PersonaHolding, latest: DailyScreenEntr
     if (latest.per != null && latest.per > 30) return "PERの割高化";
   }
   if (id === "value") {
-    if (latest.pbr != null && latest.pbr > 2.5) return "PBRの割高化(割安さの消失)";
-    if (latest.per != null && latest.per > 25) return "PERの割高化(割安さの消失)";
+    // エントリー基準(グレアム指数5.0以下)より緩く取り、小さな変動での頻繁な入れ替わりを避ける。
+    if (latest.per != null && latest.pbr != null && latest.per > 0 && latest.pbr > 0 && latest.per * latest.pbr > 10) {
+      return "グレアム指数の割高化(割安さの消失)";
+    }
   }
   if (id === "growth") {
     if (latest.earningsGrowth != null && latest.earningsGrowth < 0) return "利益成長の鈍化";

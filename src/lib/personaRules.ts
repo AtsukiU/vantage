@@ -45,16 +45,18 @@ export function passesFilter(id: BasePersonaId, e: DailyScreenEntry): boolean {
     return e.roe != null && e.roe >= 15 && e.per != null && e.per > 0 && e.per <= 20;
   }
   if (id === "value") {
-    // グレアム「ディープバリュー」: PBR・PERの低さ(割安)+流動比率・負債比率(財務の固さ)で
-    // 「安全域」を確認する。current/debtはデータが取れない銘柄(特にJP中小型株)が多いため、
-    // 無ければ条件対象外として通す(必須にすると候補がほぼゼロになってしまうため)。
+    // グレアム「ディープバリュー(資産バリュー投資)」: 「グレアム指数」(PER×PBR、グレアム自身の
+    // 複合指標)が5.0以下という厳しめの基準で、年率20%を狙う深い割安株だけに絞る
+    // (グレアム自身の目安は22.5以下だが、より厳選するためここでは5.0を基準にする)。
+    // それに加えて流動比率・負債比率(財務の固さ=資産価値の裏付け)で安全域を確認する。
+    // current/debtはデータが取れない銘柄(特にJP中小型株)が多いため、無ければ条件対象外として
+    // 通す(必須にすると候補がほぼゼロになってしまうため)。
     return (
-      e.pbr != null &&
-      e.pbr > 0 &&
-      e.pbr <= 1.5 &&
       e.per != null &&
       e.per > 0 &&
-      e.per <= 15 &&
+      e.pbr != null &&
+      e.pbr > 0 &&
+      e.per * e.pbr <= 5.0 &&
       (e.currentRatio == null || e.currentRatio >= 1.5) &&
       (e.debtToEquity == null || e.debtToEquity <= 150)
     );
@@ -228,9 +230,11 @@ export function explainFilter(id: BasePersonaId, e: DailyScreenEntry): FilterExp
     ];
   }
   if (id === "value") {
+    const grahamIndex = e.per != null && e.pbr != null && e.per > 0 && e.pbr > 0 ? e.per * e.pbr : null;
     return [
-      { label: "PBR", value: e.pbr != null ? `${e.pbr.toFixed(2)}倍(基準1.5倍以下)` : "データなし", pass: e.pbr != null && e.pbr > 0 && e.pbr <= 1.5 },
-      { label: "PER", value: e.per != null ? `${e.per.toFixed(1)}倍(基準15倍以下)` : "データなし", pass: e.per != null && e.per > 0 && e.per <= 15 },
+      { label: "グレアム指数(PER×PBR)", value: grahamIndex != null ? `${grahamIndex.toFixed(1)}(基準5.0以下)` : "データなし", pass: grahamIndex != null && grahamIndex <= 5.0 },
+      { label: "PER", value: e.per != null ? `${e.per.toFixed(1)}倍` : "データなし", pass: e.per != null && e.per > 0 },
+      { label: "PBR", value: e.pbr != null ? `${e.pbr.toFixed(2)}倍` : "データなし", pass: e.pbr != null && e.pbr > 0 },
       { label: "流動比率", value: e.currentRatio != null ? `${e.currentRatio.toFixed(2)}(基準1.5以上)` : "データなし(条件対象外)", pass: e.currentRatio == null || e.currentRatio >= 1.5 },
       { label: "負債比率(D/E)", value: e.debtToEquity != null ? `${e.debtToEquity.toFixed(0)}%(基準150%以下)` : "データなし(条件対象外)", pass: e.debtToEquity == null || e.debtToEquity <= 150 },
     ];

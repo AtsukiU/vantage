@@ -47,8 +47,8 @@ export const BASE_PERSONA_DEFS: PersonaDef[] = [
   },
   {
     id: "value",
-    label: "グレアム型(ディープバリュー)",
-    description: "PBR・PERが低く、流動比率が高く負債が少ない、割安かつ財務が固い銘柄だけを選ぶ長期志向。",
+    label: "グレアム型(資産バリュー投資)",
+    description: "グレアム指数(PER×PBR)が5.0以下という厳しい基準で選ぶ、年率20%を狙う深い割安株投資。流動比率・負債比率で財務の固さも確認する。",
     stopLossPct: -12,
     takeProfitPct: 24,
     maxNewEntriesPerDay: 2,
