@@ -35,8 +35,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ja" className={`${roundedSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="h-full flex flex-col overflow-hidden bg-[var(--background)]">
+    <html lang="ja" className={`${roundedSans.variable} ${geistMono.variable} h-dvh antialiased`}>
+      <body className="h-dvh flex flex-col overflow-hidden bg-[var(--background)]">
         <ThemeInit />
         <ModeInit />
         {children}
