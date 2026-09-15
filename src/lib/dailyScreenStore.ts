@@ -55,7 +55,7 @@ export interface DailyScreenEntry {
   volumeRatio: number | null; // 出来高が平均の何倍か(CANSLIMの出来高急増判定に使う)
   priceVs50ma: number | null; // % (50日移動平均線からの乖離)
   priceVs200ma: number | null; // % (200日移動平均線からの乖離、逆張り判定に使う)
-  // 以下は投資家スタイル別パーソナ(グレアム型・グリーンブラット型・リンチ型)の判定用。
+  // 以下は投資家スタイル別パーソナ(グレアム型・グリーンブラット型・リンチ型など)の判定用。
   // スキャン時に取得済みのStockMetricsからそのまま転記するだけで、追加のAPI呼び出しは発生しない。
   per: number | null;
   pbr: number | null;
@@ -64,6 +64,7 @@ export interface DailyScreenEntry {
   currentRatio: number | null;
   revenueGrowth: number | null; // %
   earningsGrowth: number | null; // %
+  marketCap: number | null; // 時価総額(現地通貨)。かぶ1000型の小型株判定に使う
 }
 
 export interface DailyScreenState {
@@ -228,6 +229,7 @@ async function runScan(market: ScreenMarket): Promise<void> {
             currentRatio: scores.metrics.currentRatio,
             revenueGrowth: scores.metrics.revenueGrowth,
             earningsGrowth: scores.metrics.earningsGrowth,
+            marketCap: scores.metrics.marketCap,
           });
         }
       } catch {

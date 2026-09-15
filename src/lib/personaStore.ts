@@ -5,11 +5,12 @@ import { brokerCommissionJpy } from "./brokerFees";
 import { getDailyScreenState, type DailyScreenEntry, type ScreenMarket } from "./dailyScreenStore";
 import { computeOverallScore } from "./dailyPickOverall";
 import { fetchStockMetrics } from "./stockMetrics";
-import { convictionMultiplier, candidatesFor, managerCandidates, BASE_LABEL_SHORT, supportersFor, type BasePersonaId } from "./personaRules";
+import { convictionMultiplier, candidatesFor, managerCandidates, BASE_LABEL_SHORT, supportersFor, activePersonaIds, type BasePersonaId } from "./personaRules";
 import {
   PERSONA_DEFS,
   STARTING_CASH_JPY,
   type PersonaId,
+  type PersonaStyle,
   type PersonaHolding,
   type PersonaAccount,
   type PersonasFile,
@@ -108,7 +109,7 @@ function accountEquityJpy(acc: PersonaAccount, pool: Map<string, DailyScreenEntr
 }
 
 // 決済ルール: 損切り/利確に加え、パーソナごとの「シグナルが崩れたら降りる」条件も見る。
-function exitReasonFor(id: PersonaId, h: PersonaHolding, latest: DailyScreenEntry | undefined): string | null {
+function exitReasonFor(id: PersonaId, h: PersonaHolding, latest: DailyScreenEntry | undefined, activeIds: BasePersonaId[]): string | null {
   if (!latest || latest.price == null) return null;
   const price = latest.price;
   if (price <= h.stopLoss) return "損切り";
@@ -123,6 +124,18 @@ function exitReasonFor(id: PersonaId, h: PersonaHolding, latest: DailyScreenEntr
     if (latest.per != null && latest.pbr != null && latest.per > 0 && latest.pbr > 0 && latest.per * latest.pbr > 10) {
       return "グレアム指数の割高化(割安さの消失)";
     }
+  }
+  if (id === "kabu1000") {
+    if (latest.per != null && latest.pbr != null && latest.per > 0 && latest.pbr > 0 && latest.per * latest.pbr > 10) {
+      return "グレアム指数の割高化(割安さの消失)";
+    }
+  }
+  if (id === "oneil") {
+    if (latest.rsPercentile != null && latest.rsPercentile < 50) return "相対力(RS)の低下(リーダー失格)";
+  }
+  if (id === "buffett") {
+    if (latest.roe != null && latest.roe < 8) return "ROEの低下(質の悪化)";
+    if (latest.debtToEquity != null && latest.debtToEquity > 100) return "負債比率の悪化";
   }
   if (id === "growth") {
     if (latest.earningsGrowth != null && latest.earningsGrowth < 0) return "利益成長の鈍化";
@@ -148,7 +161,7 @@ function exitReasonFor(id: PersonaId, h: PersonaHolding, latest: DailyScreenEntr
     if (grade === "C" || grade === "D") return "総合評価の低下";
   }
   if (id === "manager") {
-    if (supportersFor(latest).length === 0) return "支持の消失(全員が支持を外した)";
+    if (supportersFor(latest, activeIds).length === 0) return "支持の消失(全員が支持を外した)";
   }
   return null;
 }
@@ -159,17 +172,18 @@ interface DayContext {
   poolMap: Map<string, DailyScreenEntry>;
   jpResults: DailyScreenEntry[];
   usdJpy: number;
+  activeIds: BasePersonaId[]; // スタイル設定で合議に参加する運用者(統括マネージャー用)
 }
 
 // 1パーソナ分、1日分の決済判定→エントリー判定を行い、口座を直接更新する。
 function processPersonaForDay(def: (typeof PERSONA_DEFS)[number], acc: PersonaAccount, ctx: DayContext): void {
-  const { date, pool, poolMap, jpResults, usdJpy } = ctx;
+  const { date, pool, poolMap, jpResults, usdJpy, activeIds } = ctx;
 
   // 1. 決済判定
     const remaining: PersonaHolding[] = [];
     for (const h of acc.holdings) {
       const latest = poolMap.get(h.ticker);
-      const reason = exitReasonFor(def.id, h, latest);
+      const reason = exitReasonFor(def.id, h, latest, activeIds);
       if (reason && latest?.price != null) {
         const sellFeeJpy = brokerCommissionJpy(latest.price * h.shares, h.currency, usdJpy);
         const proceedsJpy = toJpy(latest.price * h.shares, h.currency, usdJpy) - sellFeeJpy;
@@ -196,7 +210,7 @@ function processPersonaForDay(def: (typeof PERSONA_DEFS)[number], acc: PersonaAc
     const held = new Set(acc.holdings.map((h) => h.ticker));
     const equity = accountEquityJpy(acc, poolMap, usdJpy);
     const candidates: { entry: DailyScreenEntry; reason: string }[] = def.isManager
-      ? managerCandidates(pool, held).map(({ entry, supporters }) => ({
+      ? managerCandidates(pool, held, activeIds).map(({ entry, supporters }) => ({
           entry,
           reason: `合議採用(${supporters.map((s) => BASE_LABEL_SHORT[s]).join("・")}が支持)`,
         }))
@@ -266,7 +280,9 @@ export type PersonaRunResult =
 // 押すたびに現時点で取得済みの「本日の注目銘柄」(JP/US)を使って全パーソナの
 // 決済・エントリー判定をやり直す(判定ロジック自体は同じデータに対して冪等 —
 // 既に保有・既に決済済みの銘柄を二重に売買することはない)。
-export async function runPersonasNow(): Promise<PersonaRunResult> {
+// style(バリュー重視/グロース重視)を渡すと、統括マネージャーの合議から対立するスタイルの
+// 運用者を除外する(personaRules.tsのactivePersonaIds参照)。未指定なら全員参加。
+export async function runPersonasNow(style?: PersonaStyle | null): Promise<PersonaRunResult> {
   const date = todayJst();
   const state = await loadFile();
 
@@ -283,7 +299,7 @@ export async function runPersonasNow(): Promise<PersonaRunResult> {
   const fx = await fetchStockMetrics("JPY=X").catch(() => null);
   const usdJpy = fx?.price ?? state.usdJpy ?? 150;
 
-  const ctx: DayContext = { date, pool, poolMap, jpResults: jpState.results, usdJpy };
+  const ctx: DayContext = { date, pool, poolMap, jpResults: jpState.results, usdJpy, activeIds: activePersonaIds(style) };
   for (const def of PERSONA_DEFS) {
     processPersonaForDay(def, state.accounts[def.id], ctx);
   }

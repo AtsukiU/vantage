@@ -1,12 +1,30 @@
 import type { DailyScreenEntry } from "./dailyScreenStore";
 import { computeOverallScore } from "./dailyPickOverall";
-import { BASE_PERSONA_DEFS } from "./personaDefs";
+import { BASE_PERSONA_DEFS, type PersonaStyle } from "./personaDefs";
 
 // 「運用者」の銘柄選定ロジックだけを切り出した、fsに依存しない純粋関数群。
 // personaStore.ts(サーバー専用、仮想口座の永続化)と、実ポートフォリオへの助言を
 // クライアント側で計算するportfolioAdvice.tsの両方から使う共通ロジック。
 
-export type BasePersonaId = "trend" | "committee" | "value" | "growth" | "risk" | "income" | "event";
+export type BasePersonaId =
+  | "trend"
+  | "oneil"
+  | "committee"
+  | "value"
+  | "kabu1000"
+  | "buffett"
+  | "growth"
+  | "risk"
+  | "income"
+  | "event";
+
+// ユーザーが設定で「バリュー重視/グロース重視」を選んだ時、統括マネージャーの合議に参加する
+// 運用者のIDを返す。対立するスタイル(バリューを選べばグロース)だけを除外し、中立は常に参加する。
+// 指定なし(undefined/"neutral"相当の選択が無い状態)なら全員参加。
+export function activePersonaIds(preference: PersonaStyle | null | undefined): BasePersonaId[] {
+  const opposite: PersonaStyle | null = preference === "value" ? "growth" : preference === "growth" ? "value" : null;
+  return BASE_PERSONA_DEFS.filter((d) => d.style !== opposite).map((d) => d.id as BasePersonaId);
+}
 
 // ISO日付文字列(YYYY-MM-DD)から、今日を起点とした日数を返す(未来ならプラス)。
 function daysUntil(dateStr: string): number {
@@ -40,9 +58,33 @@ export function passesFilter(id: BasePersonaId, e: DailyScreenEntry): boolean {
       e.rsPercentile >= 70
     );
   }
+  if (id === "oneil") {
+    // オニール「CANSLIM」: 利益成長などを問うCANSLIMスコアが高く、かつ相対力(RS)が市場上位20%
+    // (IBDのRSレーティング80以上に相当)に入っている「値動きのリーダー」だけを狙う。
+    return (
+      e.canslimScore != null &&
+      e.canslimTotal > 0 &&
+      e.canslimScore / e.canslimTotal >= 0.7 &&
+      e.rsPercentile != null &&
+      e.rsPercentile >= 80
+    );
+  }
   if (id === "committee") {
     // グリーンブラット「マジックフォーミュラ」: 質の高さ(ROE)と割安さ(低PER)を両方要求する。
     return e.roe != null && e.roe >= 15 && e.per != null && e.per > 0 && e.per <= 20;
+  }
+  if (id === "buffett") {
+    // バフェット「クオリティ・バリュー」: 高ROE(質)・低負債(財務の保守性)・妥当な株価
+    // (高すぎない)をすべて満たす銘柄を狙う。グリーンブラット型と似ているが、割安さより
+    // 質と財務の保守性(負債の少なさ)を明示的に要求する点が異なる。
+    return (
+      e.roe != null &&
+      e.roe >= 15 &&
+      e.per != null &&
+      e.per > 0 &&
+      e.per <= 25 &&
+      (e.debtToEquity == null || e.debtToEquity <= 50)
+    );
   }
   if (id === "value") {
     // グレアム「ディープバリュー(資産バリュー投資)」: 「グレアム指数」(PER×PBR、グレアム自身の
@@ -59,6 +101,24 @@ export function passesFilter(id: BasePersonaId, e: DailyScreenEntry): boolean {
       e.per * e.pbr <= 5.0 &&
       (e.currentRatio == null || e.currentRatio >= 1.5) &&
       (e.debtToEquity == null || e.debtToEquity <= 150)
+    );
+  }
+  if (id === "kabu1000") {
+    // かぶ1000「小型資産バリュー」: グレアム型と同じ割安・財務健全基準に、時価総額の小ささ
+    // (機関投資家が入ってこない領域)を追加する。JPY建ては300億円以下、USD建ては5億ドル以下を
+    // 目安にする(市場ごとに規模の桁が違うため通貨別にしきい値を分ける)。
+    const capThreshold = e.currency === "USD" ? 500_000_000 : 30_000_000_000;
+    return (
+      e.per != null &&
+      e.per > 0 &&
+      e.pbr != null &&
+      e.pbr > 0 &&
+      e.per * e.pbr <= 5.0 &&
+      (e.currentRatio == null || e.currentRatio >= 1.5) &&
+      (e.debtToEquity == null || e.debtToEquity <= 150) &&
+      e.marketCap != null &&
+      e.marketCap > 0 &&
+      e.marketCap <= capThreshold
     );
   }
   if (id === "growth") {
@@ -116,9 +176,17 @@ export function candidatesFor(id: BasePersonaId, pool: DailyScreenEntry[], held:
   if (id === "trend") {
     return notHeld.sort((a, b) => b.minerviniScore! / b.minerviniTotal - a.minerviniScore! / a.minerviniTotal);
   }
+  if (id === "oneil") {
+    // 相対力(RS)が高いほど「値動きのリーダー」として魅力が高いとみなす。
+    return notHeld.sort((a, b) => b.rsPercentile! - a.rsPercentile!);
+  }
   if (id === "committee") {
     // ROE÷PER(質÷価格)が高いほど「質の割に安い」= マジックフォーミュラ的に魅力が高いとみなす。
     return notHeld.sort((a, b) => b.roe! / b.per! - a.roe! / a.per!);
+  }
+  if (id === "buffett") {
+    // ROEが高いほど「質」が高いとみなす(割安さより質を優先する、バフェットの発想通り)。
+    return notHeld.sort((a, b) => b.roe! - a.roe!);
   }
   if (id === "risk") {
     return notHeld.sort((a, b) => {
@@ -130,6 +198,10 @@ export function candidatesFor(id: BasePersonaId, pool: DailyScreenEntry[], held:
   if (id === "value") {
     // PER×PBR(グレアム自身の合成指標、彼の目安は22.5以下)が低いほど割安とみなす。
     return notHeld.sort((a, b) => a.per! * a.pbr! - b.per! * b.pbr!);
+  }
+  if (id === "kabu1000") {
+    // 時価総額が小さいほど「機関投資家が入ってこない、より狙い目な」銘柄とみなす。
+    return notHeld.sort((a, b) => a.marketCap! - b.marketCap!);
   }
   if (id === "growth") {
     // PEGレシオ(PER÷利益成長率)が低いほど「成長の割に割安」とみなす。
@@ -144,8 +216,11 @@ export function candidatesFor(id: BasePersonaId, pool: DailyScreenEntry[], held:
 
 export const BASE_LABEL_SHORT: Record<BasePersonaId, string> = {
   trend: "トレンド",
+  oneil: "オニール",
   committee: "グリーンブラット",
   value: "グレアム",
+  kabu1000: "かぶ1000",
+  buffett: "バフェット",
   growth: "リンチ",
   risk: "リスク管理",
   income: "シーゲル",
@@ -153,32 +228,33 @@ export const BASE_LABEL_SHORT: Record<BasePersonaId, string> = {
 };
 
 // 統括マネージャーが「合議採用」とみなすために必要な最低支持者数(過半数)。
-export function managerMajorityThreshold(): number {
-  return Math.floor(BASE_PERSONA_DEFS.length / 2) + 1;
+// activeCount未指定時は全運用者数を基準にする。スタイル設定で一部の運用者が合議から
+// 除外されている場合は、呼び出し元がactivePersonaIds().lengthを渡す。
+export function managerMajorityThreshold(activeCount: number = BASE_PERSONA_DEFS.length): number {
+  return Math.floor(activeCount / 2) + 1;
 }
 
 // 各運用者が「自分の一押し」とみなす上位件数。managerCandidatesの支持判定はこの中からだけ選ぶ
 // (単に合格ラインを超えているだけでなく、その人自身のランキングでも上位に入っている必要がある)。
 const MANAGER_TOP_N = 15;
 
-// managerの候補選定: 他の運用者のうち過半数(ceil((N+1)/2))が、それぞれの上位MANAGER_TOP_N件の
-// 中でこの銘柄を推している場合だけを、支持者数の多い順(同数なら総合評価順)に返す。
-// 3人中2人以上、4人中3人以上、のように素の運用者の人数が変わっても「過半数」の意味を保つ。
+// managerの候補選定: 合議に参加する運用者(activeIds、既定は全員)のうち過半数が、それぞれの
+// 上位MANAGER_TOP_N件の中でこの銘柄を推している場合だけを、支持者数の多い順(同数なら
+// 総合評価順)に返す。人数が変わっても(=スタイル設定で一部除外されていても)「過半数」の
+// 意味を保つ。
 export function managerCandidates(
   pool: DailyScreenEntry[],
-  held: Set<string>
+  held: Set<string>,
+  activeIds: BasePersonaId[] = BASE_PERSONA_DEFS.map((d) => d.id as BasePersonaId)
 ): { entry: DailyScreenEntry; supporters: BasePersonaId[] }[] {
-  const majorityThreshold = managerMajorityThreshold();
+  const majorityThreshold = managerMajorityThreshold(activeIds.length);
   const topTickersByPersona = new Map<BasePersonaId, Set<string>>(
-    BASE_PERSONA_DEFS.map((d) => {
-      const id = d.id as BasePersonaId;
-      return [id, new Set(candidatesFor(id, pool, held).slice(0, MANAGER_TOP_N).map((e) => e.ticker))];
-    })
+    activeIds.map((id) => [id, new Set(candidatesFor(id, pool, held).slice(0, MANAGER_TOP_N).map((e) => e.ticker))])
   );
   const notHeld = pool.filter((e) => !held.has(e.ticker) && e.price != null && e.price > 0 && e.currency);
   const withSupport = notHeld.map((e) => ({
     entry: e,
-    supporters: BASE_PERSONA_DEFS.map((d) => d.id as BasePersonaId).filter((id) => topTickersByPersona.get(id)!.has(e.ticker)),
+    supporters: activeIds.filter((id) => topTickersByPersona.get(id)!.has(e.ticker)),
   }));
   return withSupport
     .filter(({ supporters }) => supporters.length >= majorityThreshold)
@@ -188,10 +264,13 @@ export function managerCandidates(
     });
 }
 
-// 銘柄について、trend/committee/valueのうち何人が現在も支持しているかを返す
-// (manager役の「保有継続 or 手放すべきか」判定や、実ポートフォリオへの助言に使う)。
-export function supportersFor(e: DailyScreenEntry): BasePersonaId[] {
-  return BASE_PERSONA_DEFS.map((d) => d.id as BasePersonaId).filter((id) => passesFilter(id, e));
+// 銘柄について、合議に参加する運用者(activeIds、既定は全員)のうち何人が現在も支持しているかを
+// 返す(manager役の「保有継続 or 手放すべきか」判定や、実ポートフォリオへの助言に使う)。
+export function supportersFor(
+  e: DailyScreenEntry,
+  activeIds: BasePersonaId[] = BASE_PERSONA_DEFS.map((d) => d.id as BasePersonaId)
+): BasePersonaId[] {
+  return activeIds.filter((id) => passesFilter(id, e));
 }
 
 export interface FilterExplanation {
@@ -212,10 +291,24 @@ export function explainFilter(id: BasePersonaId, e: DailyScreenEntry): FilterExp
       { label: "相対力(RS)パーセンタイル", value: e.rsPercentile != null ? `${e.rsPercentile}(基準70以上)` : "データなし", pass: e.rsPercentile != null && e.rsPercentile >= 70 },
     ];
   }
+  if (id === "oneil") {
+    const cRatio = e.canslimScore != null && e.canslimTotal > 0 ? e.canslimScore / e.canslimTotal : null;
+    return [
+      { label: "CANSLIMスコア", value: ratioLabel(e.canslimScore, e.canslimTotal), pass: cRatio != null && cRatio >= 0.7 },
+      { label: "相対力(RS)パーセンタイル", value: e.rsPercentile != null ? `${e.rsPercentile}(基準80以上)` : "データなし", pass: e.rsPercentile != null && e.rsPercentile >= 80 },
+    ];
+  }
   if (id === "committee") {
     return [
       { label: "ROE(質)", value: e.roe != null ? `${e.roe.toFixed(1)}%(基準15%以上)` : "データなし", pass: e.roe != null && e.roe >= 15 },
       { label: "PER(割安さ)", value: e.per != null ? `${e.per.toFixed(1)}倍(基準20倍以下)` : "データなし", pass: e.per != null && e.per > 0 && e.per <= 20 },
+    ];
+  }
+  if (id === "buffett") {
+    return [
+      { label: "ROE(質)", value: e.roe != null ? `${e.roe.toFixed(1)}%(基準15%以上)` : "データなし", pass: e.roe != null && e.roe >= 15 },
+      { label: "PER", value: e.per != null ? `${e.per.toFixed(1)}倍(基準25倍以下)` : "データなし", pass: e.per != null && e.per > 0 && e.per <= 25 },
+      { label: "負債比率(D/E)", value: e.debtToEquity != null ? `${e.debtToEquity.toFixed(0)}%(基準50%以下)` : "データなし(条件対象外)", pass: e.debtToEquity == null || e.debtToEquity <= 50 },
     ];
   }
   if (id === "risk") {
@@ -235,6 +328,17 @@ export function explainFilter(id: BasePersonaId, e: DailyScreenEntry): FilterExp
       { label: "グレアム指数(PER×PBR)", value: grahamIndex != null ? `${grahamIndex.toFixed(1)}(基準5.0以下)` : "データなし", pass: grahamIndex != null && grahamIndex <= 5.0 },
       { label: "PER", value: e.per != null ? `${e.per.toFixed(1)}倍` : "データなし", pass: e.per != null && e.per > 0 },
       { label: "PBR", value: e.pbr != null ? `${e.pbr.toFixed(2)}倍` : "データなし", pass: e.pbr != null && e.pbr > 0 },
+      { label: "流動比率", value: e.currentRatio != null ? `${e.currentRatio.toFixed(2)}(基準1.5以上)` : "データなし(条件対象外)", pass: e.currentRatio == null || e.currentRatio >= 1.5 },
+      { label: "負債比率(D/E)", value: e.debtToEquity != null ? `${e.debtToEquity.toFixed(0)}%(基準150%以下)` : "データなし(条件対象外)", pass: e.debtToEquity == null || e.debtToEquity <= 150 },
+    ];
+  }
+  if (id === "kabu1000") {
+    const grahamIndex = e.per != null && e.pbr != null && e.per > 0 && e.pbr > 0 ? e.per * e.pbr : null;
+    const capThreshold = e.currency === "USD" ? 500_000_000 : 30_000_000_000;
+    const capLabel = e.currency === "USD" ? "5億ドル以下" : "300億円以下";
+    return [
+      { label: "グレアム指数(PER×PBR)", value: grahamIndex != null ? `${grahamIndex.toFixed(1)}(基準5.0以下)` : "データなし", pass: grahamIndex != null && grahamIndex <= 5.0 },
+      { label: "時価総額", value: e.marketCap != null ? `${(e.marketCap / (e.currency === "USD" ? 1e6 : 1e8)).toFixed(0)}${e.currency === "USD" ? "M" : "億円"}(基準${capLabel})` : "データなし", pass: e.marketCap != null && e.marketCap > 0 && e.marketCap <= capThreshold },
       { label: "流動比率", value: e.currentRatio != null ? `${e.currentRatio.toFixed(2)}(基準1.5以上)` : "データなし(条件対象外)", pass: e.currentRatio == null || e.currentRatio >= 1.5 },
       { label: "負債比率(D/E)", value: e.debtToEquity != null ? `${e.debtToEquity.toFixed(0)}%(基準150%以下)` : "データなし(条件対象外)", pass: e.debtToEquity == null || e.debtToEquity <= 150 },
     ];

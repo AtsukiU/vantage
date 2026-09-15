@@ -1,6 +1,6 @@
 import type { DailyScreenEntry } from "./dailyScreenStore";
 import type { Holding } from "./portfolioStore";
-import { PERSONA_DEFS, type PersonaId } from "./personaDefs";
+import { PERSONA_DEFS, type PersonaId, type PersonaStyle } from "./personaDefs";
 import {
   passesFilter,
   candidatesFor,
@@ -11,6 +11,7 @@ import {
   explainManager,
   BASE_LABEL_SHORT,
   managerMajorityThreshold,
+  activePersonaIds,
   type BasePersonaId,
   type FilterExplanation,
 } from "./personaRules";
@@ -60,11 +61,13 @@ export function computePortfolioAdvice(
   holdings: Holding[],
   priceByTicker: Map<string, { price: number | null; currency: string | null }>,
   usdJpy: number,
-  availableCashJpy: number
+  availableCashJpy: number,
+  style?: PersonaStyle | null
 ): { advice: PersonaAdvice[]; portfolioValueJpy: number } {
   const poolMap = new Map(pool.map((e) => [e.ticker, e]));
   const heldTickers = new Set(holdings.map((h) => h.ticker));
-  const majorityThreshold = managerMajorityThreshold();
+  const activeIds = activePersonaIds(style);
+  const majorityThreshold = managerMajorityThreshold(activeIds.length);
 
   let holdingsValueJpy = 0;
   for (const h of holdings) {
@@ -82,7 +85,9 @@ export function computePortfolioAdvice(
     for (const h of holdings) {
       const latest = poolMap.get(h.ticker);
       if (!latest) continue; // 本日のスキャン対象外の銘柄は判定できない
-      const stillSupported = def.isManager ? supportersFor(latest).length >= majorityThreshold : passesFilter(def.id as BasePersonaId, latest);
+      const stillSupported = def.isManager
+        ? supportersFor(latest, activeIds).length >= majorityThreshold
+        : passesFilter(def.id as BasePersonaId, latest);
       if (!stillSupported) {
         const priceNow = latest.price ?? h.avgCost;
         sells.push({
@@ -97,7 +102,7 @@ export function computePortfolioAdvice(
 
     // 買い推奨: このパーソナが新規に支持する銘柄(既保有は除く)
     const rawCandidates = def.isManager
-      ? managerCandidates(pool, heldTickers).map(({ entry, supporters }) => ({
+      ? managerCandidates(pool, heldTickers, activeIds).map(({ entry, supporters }) => ({
           entry,
           reason: `合議採用(${supporters.map((s) => BASE_LABEL_SHORT[s]).join("・")}が支持)`,
         }))

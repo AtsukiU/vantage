@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { GlassPageShell } from "../GlassPageShell";
 import { GLASS_CARD, GLASS_BTN_PRIMARY, GLASS_BTN_GHOST, GLASS_TEXT2 } from "@/lib/glassStyles";
-import { PERSONA_DEFS, STARTING_CASH_JPY, type PersonaId, type PersonaAccount } from "@/lib/personaDefs";
+import { PERSONA_DEFS, STARTING_CASH_JPY, type PersonaId, type PersonaAccount, type PersonaStyle } from "@/lib/personaDefs";
 import type { DailyScreenState } from "@/lib/dailyScreenStore";
 import { loadPortfolio, loadCashJpy, saveCashJpy } from "@/lib/portfolioStore";
 import { fetchMetricsBatch } from "@/lib/fetchMetricsBatch";
 import { computePortfolioAdvice, type PersonaAdvice } from "@/lib/portfolioAdvice";
 import type { FilterExplanation } from "@/lib/personaRules";
+import { loadPersonaStyle, savePersonaStyle } from "@/lib/personaStyleStore";
 import { FxOutlookCard } from "./FxOutlookCard";
 import { TrendBacktestCard } from "./TrendBacktestCard";
 import { Users, TrendingDown, TrendingUp, ShieldCheck } from "lucide-react";
@@ -40,8 +41,11 @@ function DetailTooltip({ detail }: { detail: FilterExplanation[] }) {
 
 const PERSONA_COLOR: Record<PersonaId, string> = {
   trend: "var(--accent)",
+  oneil: "#4a7fb5",
   committee: "var(--accent-strong)",
   value: "#6f5fa3",
+  kabu1000: "#c2823f",
+  buffett: "#4f8f5f",
   growth: "#3f8f8f",
   risk: "var(--price-down)",
   income: "#a9843b",
@@ -49,7 +53,34 @@ const PERSONA_COLOR: Record<PersonaId, string> = {
   manager: "#1c3a5e",
 };
 
-const DISPLAY_ORDER: PersonaId[] = ["manager", "trend", "committee", "value", "growth", "risk", "income", "event"];
+const DISPLAY_ORDER: PersonaId[] = [
+  "manager",
+  "committee",
+  "value",
+  "kabu1000",
+  "buffett",
+  "oneil",
+  "growth",
+  "trend",
+  "risk",
+  "income",
+  "event",
+];
+
+// メインの助言カード一覧を見出しでグルーピングするための分類(manager以外)。
+// 「重視するスタイル」を選ぶと、統括マネージャーの合議からは反対側の分類が除外されるが、
+// 個々のアドバイザーのカード自体は非表示にしない(参考として見え続ける)。
+const STYLE_SECTIONS: { label: string; ids: PersonaId[] }[] = [
+  { label: "バリュー系", ids: ["committee", "value", "kabu1000", "buffett"] },
+  { label: "グロース系", ids: ["oneil", "growth"] },
+  { label: "中立", ids: ["trend", "risk", "income", "event"] },
+];
+
+const STYLE_OPTIONS: { id: PersonaStyle | null; label: string }[] = [
+  { id: null, label: "指定なし" },
+  { id: "value", label: "バリュー重視" },
+  { id: "growth", label: "グロース重視" },
+];
 
 function fmtYen(n: number): string {
   return "¥" + Math.round(n).toLocaleString("ja-JP");
@@ -70,6 +101,8 @@ export function PersonasTab({
   const [cashJpy, setCashJpy] = useState(0);
   const [cashInput, setCashInput] = useState("");
   const [editingCash, setEditingCash] = useState(false);
+  const [style, setStyle] = useState<PersonaStyle | null>(null);
+  const [styleLoaded, setStyleLoaded] = useState(false);
 
   async function loadAdvice() {
     setLoading(true);
@@ -95,7 +128,14 @@ export function PersonasTab({
       const usdJpy = priceMap.get("JPY=X")?.price ?? 150;
       const priceByTicker = new Map(holdings.map((h) => [h.ticker, { price: priceMap.get(h.ticker)?.price ?? null, currency: priceMap.get(h.ticker)?.currency ?? null }]));
 
-      const { advice: computed, portfolioValueJpy: value } = computePortfolioAdvice(combinedPool, holdings, priceByTicker, usdJpy, cash);
+      const { advice: computed, portfolioValueJpy: value } = computePortfolioAdvice(
+        combinedPool,
+        holdings,
+        priceByTicker,
+        usdJpy,
+        cash,
+        style
+      );
       setAdvice(computed);
       setPortfolioValueJpy(value);
     } finally {
@@ -104,10 +144,24 @@ export function PersonasTab({
   }
 
   useEffect(() => {
-    if (hidden) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- タブを開いた時に助言を計算
+    if (hidden || styleLoaded) return;
+    loadPersonaStyle().then((s) => {
+      setStyle(s);
+      setStyleLoaded(true);
+    });
+  }, [hidden, styleLoaded]);
+
+  useEffect(() => {
+    if (hidden || !styleLoaded) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- タブを開いた/スタイル設定を読み込んだ時に助言を計算
     loadAdvice();
-  }, [hidden]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- styleLoaded後の初回・スタイル切替時のみ再計算したい
+  }, [hidden, styleLoaded, style]);
+
+  function selectStyle(id: PersonaStyle | null) {
+    setStyle(id);
+    savePersonaStyle(id);
+  }
 
   function handleSaveCash() {
     const n = Number(cashInput);
@@ -130,7 +184,7 @@ export function PersonasTab({
             <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">運用アドバイザー</h2>
           </div>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">
-            7人の仮想アドバイザーがあなたの保有銘柄・本日の注目銘柄を見て、
+            11人の仮想アドバイザーがあなたの保有銘柄・本日の注目銘柄を見て、
             <span className="font-semibold text-[var(--foreground)]">売却/新規買いの候補と推奨株数</span>
             を助言します(実際の売買は行いません)。
           </p>
@@ -141,6 +195,31 @@ export function PersonasTab({
             {portfolioValueJpy > 0 && (
               <span className="text-[11px] text-[var(--text-muted)]">保有銘柄{holdingCount}件・評価額(円換算) {fmtYen(portfolioValueJpy)}</span>
             )}
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-[var(--fill-subtle)] px-3 py-2">
+            <span className="text-[11px] font-semibold text-[var(--text-secondary)]">重視するスタイル:</span>
+            <div className="flex overflow-hidden rounded-full border border-[var(--border-subtle)]">
+              {STYLE_OPTIONS.map((opt) => {
+                const isActive = style === opt.id;
+                return (
+                  <button
+                    key={opt.label}
+                    onClick={() => selectStyle(opt.id)}
+                    className="px-2.5 py-1.5 text-[11px] font-bold transition"
+                    style={{
+                      background: isActive ? "var(--accent)" : "transparent",
+                      color: isActive ? "#fff" : "var(--text-secondary)",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <span className="text-[11px] text-[var(--text-muted)]">
+              — 選ぶと統括マネージャーの合議から反対のスタイルを除外します(個々のアドバイザーは表示され続けます)
+            </span>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-[var(--fill-subtle)] px-3 py-2">
@@ -194,10 +273,11 @@ export function PersonasTab({
 
         {advice && (
           <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
-            {DISPLAY_ORDER.map((id) => {
+            {DISPLAY_ORDER.flatMap((id) => {
               const def = PERSONA_DEFS.find((p) => p.id === id)!;
               const a = advice.find((x) => x.personaId === id)!;
-              return (
+              const section = STYLE_SECTIONS.find((sec) => sec.ids[0] === id);
+              const card = (
                 <div
                   key={id}
                   className={def.isManager ? `${GLASS_CARD} lg:col-span-2` : GLASS_CARD}
@@ -296,6 +376,16 @@ export function PersonasTab({
                   </div>
                 </div>
               );
+              if (!section) return [card];
+              return [
+                <div
+                  key={`section-${section.label}`}
+                  className="col-span-1 mt-2 text-[11px] font-bold uppercase tracking-wide text-[var(--text-muted)] lg:col-span-2"
+                >
+                  {section.label}
+                </div>,
+                card,
+              ];
             })}
           </div>
         )}
@@ -308,7 +398,7 @@ export function PersonasTab({
             </span>
           </summary>
           <div className="mt-3">
-            <SimulatedTrackRecord />
+            <SimulatedTrackRecord style={style} />
           </div>
         </details>
 
@@ -331,7 +421,7 @@ export function PersonasTab({
 // 「このルールに従い続けたら実際どうなるか」を検証するための、架空資金(各運用者ごとに
 // 元手¥1,000,000)でのシミュレーション結果。押すたびに現在のデータで判断をやり直す
 // (personaStore.ts / /api/personas/run)。実際の売買には使わない検証用の補助情報。
-function SimulatedTrackRecord() {
+function SimulatedTrackRecord({ style }: { style: PersonaStyle | null }) {
   interface PersonasResponse {
     lastRunDate: string | null;
     lastRunAt: string | null;
@@ -361,7 +451,11 @@ function SimulatedTrackRecord() {
     setRunning(true);
     setRunError(null);
     try {
-      const res = await fetch("/api/personas/run", { method: "POST" });
+      const res = await fetch("/api/personas/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ style }),
+      });
       const json = await res.json();
       if (!res.ok) {
         setRunError(json.error ?? "判断の実行に失敗しました");
@@ -391,7 +485,7 @@ function SimulatedTrackRecord() {
   return (
     <div>
       <p className="text-[11px] text-[var(--text-secondary)]">
-        各アドバイザーに架空の元手{fmtYen(STARTING_CASH_JPY)}(計7口座)を与え、上と同じルールで実際に売買させ続けたら成績がどうなるかを記録しています。実際の売買は一切行いません。
+        各アドバイザーに架空の元手{fmtYen(STARTING_CASH_JPY)}(計11口座)を与え、上と同じルールで実際に売買させ続けたら成績がどうなるかを記録しています。実際の売買は一切行いません。
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <button onClick={runNow} disabled={running} className={GLASS_BTN_GHOST}>
@@ -409,7 +503,7 @@ function SimulatedTrackRecord() {
 
       {data && (
         <>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
             {DISPLAY_ORDER.map((id) => {
               const def = PERSONA_DEFS.find((p) => p.id === id)!;
               const acc = data.accounts[id];
