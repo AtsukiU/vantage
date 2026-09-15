@@ -2,6 +2,12 @@
 // クッキー+crumb(CSRFトークン相当)を要求するようになっている。yfinance等が使っているのと同じ
 // 2段階フロー(fc.yahoo.comでセッションクッキー取得 → getcrumbでcrumb取得)を実装し、
 // プロセス内でキャッシュして使い回す。
+// この2つのfetchはyahooFetch経由にしている(YAHOO_PROXY_URL設定時はVercel中継プロキシを通す。
+// Renderからだとこの認証フロー自体は成立するが、この後のquoteSummary本体の中身が空で返って
+// くるという劣化が起きているため、プロキシは主にstockMetrics.ts側のfetchYahooAuthenticatedで
+// 効いてくる。ここも念のため揃えておく)。
+
+import { yahooFetch } from "./yahooProxyFetch";
 
 export interface YahooAuth {
   cookie: string;
@@ -9,7 +15,6 @@ export interface YahooAuth {
   fetchedAt: number;
 }
 
-const HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; StockNewsApp/1.0)" };
 const TTL_MS = 50 * 60 * 1000;
 // このfetchが固まると、全銘柄が待つ共有pendingプロミスごと止まってしまう(スキャン全体の
 // フリーズにつながった実例があるため、タイムアウトは特に重要)。
@@ -37,19 +42,15 @@ function getSetCookies(headers: Headers): string[] {
 }
 
 async function fetchFreshAuth(): Promise<YahooAuth> {
-  const cookieRes = await fetch("https://fc.yahoo.com", {
-    headers: HEADERS,
-    cache: "no-store",
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-  });
+  const cookieRes = await yahooFetch("https://fc.yahoo.com", {}, FETCH_TIMEOUT_MS);
   const cookie = parseCookieHeader(getSetCookies(cookieRes.headers));
   if (!cookie) throw new Error("failed to obtain Yahoo session cookie");
 
-  const crumbRes = await fetch("https://query2.finance.yahoo.com/v1/test/getcrumb", {
-    headers: { ...HEADERS, Cookie: cookie },
-    cache: "no-store",
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-  });
+  const crumbRes = await yahooFetch(
+    "https://query2.finance.yahoo.com/v1/test/getcrumb",
+    { Cookie: cookie },
+    FETCH_TIMEOUT_MS
+  );
   const crumb = (await crumbRes.text()).trim();
   if (!crumb || crumb.includes("<html")) throw new Error("failed to obtain Yahoo crumb");
 

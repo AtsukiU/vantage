@@ -1,4 +1,5 @@
 import { getYahooAuth } from "./yahooAuth";
+import { yahooFetch } from "./yahooProxyFetch";
 import { cachedFundamental } from "./fundamentalsCache";
 import type { CommitteeVerdict } from "./committeeScore";
 
@@ -179,12 +180,7 @@ function sleep(ms: number): Promise<void> {
 // (stockFinancials.tsからも同じ認証フローを再利用するためexportしている)
 export async function fetchYahooAuthenticated(buildUrl: (crumb: string) => string): Promise<Response> {
   let auth = await getYahooAuth();
-  const doFetch = () =>
-    fetch(buildUrl(auth.crumb), {
-      headers: { ...HEADERS, Cookie: auth.cookie },
-      cache: "no-store",
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    });
+  const doFetch = () => yahooFetch(buildUrl(auth.crumb), { Cookie: auth.cookie }, FETCH_TIMEOUT_MS);
 
   let res = await doFetch();
 

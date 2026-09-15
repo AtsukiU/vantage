@@ -33,6 +33,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ただし.env.local.exampleは実際の秘密情報を含まないテンプレートなので、
+# セットアップ手順として追跡する(上のパターンから明示的に除外する)。
+!.env.local.example
 
 # vercel
 .vercel
