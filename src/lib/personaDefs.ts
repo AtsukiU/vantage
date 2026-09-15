@@ -77,7 +77,7 @@ export const BASE_PERSONA_DEFS: PersonaDef[] = [
   {
     id: "value",
     label: "グレアム型(資産バリュー投資)",
-    description: "グレアム指数(PER×PBR)が5.0以下という厳しい基準で選ぶ、年率20%を狙う深い割安株投資。流動比率・負債比率で財務の固さも確認する。",
+    description: "グレアム指数(PER×PBR)が22.5以下という、グレアム自身の著書どおりの基準で選ぶ王道の資産バリュー投資。流動比率・負債比率で財務の固さも確認する。",
     style: "value",
     stopLossPct: -12,
     takeProfitPct: 24,
@@ -87,7 +87,7 @@ export const BASE_PERSONA_DEFS: PersonaDef[] = [
   {
     id: "kabu1000",
     label: "かぶ1000型(小型資産バリュー)",
-    description: "グレアム型と同じ割安・財務健全基準に加え、時価総額の小ささ(機関投資家が入ってこない領域)を重視する。資産の少ない個人投資家が優位を取りやすい領域を狙う。",
+    description: "グレアム型と同じ財務健全基準に、グレアム指数5.0以下というより厳しい割安基準と、時価総額の小ささ(機関投資家が入ってこない領域)を組み合わせる。資産の少ない個人投資家が優位を取りやすい領域で、年率20%を狙う。",
     style: "value",
     stopLossPct: -12,
     takeProfitPct: 24,

@@ -88,8 +88,8 @@ export function passesFilter(id: BasePersonaId, e: DailyScreenEntry): boolean {
   }
   if (id === "value") {
     // グレアム「ディープバリュー(資産バリュー投資)」: 「グレアム指数」(PER×PBR、グレアム自身の
-    // 複合指標)が5.0以下という厳しめの基準で、年率20%を狙う深い割安株だけに絞る
-    // (グレアム自身の目安は22.5以下だが、より厳選するためここでは5.0を基準にする)。
+    // 複合指標)が22.5以下という、グレアム自身の著書での目安どおりの基準で選ぶ。
+    // (より厳選した5.0基準は、かぶ1000型が引き継いでいる)。
     // それに加えて流動比率・負債比率(財務の固さ=資産価値の裏付け)で安全域を確認する。
     // current/debtはデータが取れない銘柄(特にJP中小型株)が多いため、無ければ条件対象外として
     // 通す(必須にすると候補がほぼゼロになってしまうため)。
@@ -98,15 +98,16 @@ export function passesFilter(id: BasePersonaId, e: DailyScreenEntry): boolean {
       e.per > 0 &&
       e.pbr != null &&
       e.pbr > 0 &&
-      e.per * e.pbr <= 5.0 &&
+      e.per * e.pbr <= 22.5 &&
       (e.currentRatio == null || e.currentRatio >= 1.5) &&
       (e.debtToEquity == null || e.debtToEquity <= 150)
     );
   }
   if (id === "kabu1000") {
-    // かぶ1000「小型資産バリュー」: グレアム型と同じ割安・財務健全基準に、時価総額の小ささ
-    // (機関投資家が入ってこない領域)を追加する。JPY建ては300億円以下、USD建ては5億ドル以下を
-    // 目安にする(市場ごとに規模の桁が違うため通貨別にしきい値を分ける)。
+    // かぶ1000「小型資産バリュー」: グレアム型と同じ財務健全基準に、グレアム指数5.0以下という
+    // より厳しい割安基準(年率20%を狙う水準)と、時価総額の小ささ(機関投資家が入ってこない領域)を
+    // 組み合わせる。JPY建ては300億円以下、USD建ては5億ドル以下を目安にする
+    // (市場ごとに規模の桁が違うため通貨別にしきい値を分ける)。
     const capThreshold = e.currency === "USD" ? 500_000_000 : 30_000_000_000;
     return (
       e.per != null &&
@@ -196,7 +197,7 @@ export function candidatesFor(id: BasePersonaId, pool: DailyScreenEntry[], held:
     });
   }
   if (id === "value") {
-    // PER×PBR(グレアム自身の合成指標、彼の目安は22.5以下)が低いほど割安とみなす。
+    // PER×PBR(グレアム自身の合成指標)が低いほど割安とみなす。
     return notHeld.sort((a, b) => a.per! * a.pbr! - b.per! * b.pbr!);
   }
   if (id === "kabu1000") {
@@ -325,7 +326,7 @@ export function explainFilter(id: BasePersonaId, e: DailyScreenEntry): FilterExp
   if (id === "value") {
     const grahamIndex = e.per != null && e.pbr != null && e.per > 0 && e.pbr > 0 ? e.per * e.pbr : null;
     return [
-      { label: "グレアム指数(PER×PBR)", value: grahamIndex != null ? `${grahamIndex.toFixed(1)}(基準5.0以下)` : "データなし", pass: grahamIndex != null && grahamIndex <= 5.0 },
+      { label: "グレアム指数(PER×PBR)", value: grahamIndex != null ? `${grahamIndex.toFixed(1)}(基準22.5以下)` : "データなし", pass: grahamIndex != null && grahamIndex <= 22.5 },
       { label: "PER", value: e.per != null ? `${e.per.toFixed(1)}倍` : "データなし", pass: e.per != null && e.per > 0 },
       { label: "PBR", value: e.pbr != null ? `${e.pbr.toFixed(2)}倍` : "データなし", pass: e.pbr != null && e.pbr > 0 },
       { label: "流動比率", value: e.currentRatio != null ? `${e.currentRatio.toFixed(2)}(基準1.5以上)` : "データなし(条件対象外)", pass: e.currentRatio == null || e.currentRatio >= 1.5 },
