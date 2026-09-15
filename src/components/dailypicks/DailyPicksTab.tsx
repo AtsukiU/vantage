@@ -28,7 +28,7 @@ const RS_FILTERS: { threshold: number; label: string }[] = [
 ];
 
 const MARKETS: { key: ScreenMarket; label: string; universe: string }[] = [
-  { key: "jp", label: "日本株", universe: "東証プライム市場(約1,550銘柄)" },
+  { key: "jp", label: "日本株", universe: "東証プライム・スタンダード市場(約3,100銘柄)" },
   { key: "us", label: "米国株", universe: "S&P500構成銘柄(約500銘柄)" },
 ];
 
@@ -195,7 +195,7 @@ export function DailyPicksTab({
             <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">本日の注目銘柄</h2>
             <p className="mt-1 text-xs text-[var(--text-secondary)]">
               {view === "all"
-                ? "東証プライム市場(約1,550銘柄)+S&P500構成銘柄(約500銘柄)を合算し、ミネルヴィニ・CANSLIM・財務健全性・投資委員会の合議スコアから総合評価を出します。"
+                ? "東証プライム・スタンダード市場(約3,100銘柄)+S&P500構成銘柄(約500銘柄)を合算し、ミネルヴィニ・CANSLIM・財務健全性・投資委員会の合議スコアから総合評価を出します。"
                 : `${MARKETS.find((m) => m.key === view)!.universe}をフルスキャンし、ミネルヴィニ・CANSLIM・財務健全性・投資委員会の合議スコアから総合評価を出します。`}
             </p>
           </div>

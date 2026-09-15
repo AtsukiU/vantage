@@ -55,12 +55,14 @@ function toResult(entry: JpListedEntry): JpDirectoryResult {
   };
 }
 
-// 「本日の注目銘柄」の毎日フルスキャン対象。プライム市場(内国株式・外国株式)のみに絞り、
-// ETF/REIT/PRO Marketなどファンダメンタル分析の対象にならない区分は除外する。
-// 約1,550銘柄になる(スタンダード・グロースまで含めると4,000社超になり、非公式APIへの
-// 問い合わせ回数が過大になるため対象外にしている)。
-export function getPrimeMarketTickers(): { ticker: string; name: string }[] {
-  return ENTRIES.filter((e) => e.market.includes("プライム")).map((e) => ({
+// 「本日の注目銘柄」の毎日フルスキャン対象。プライム市場+スタンダード市場(内国株式・外国株式)
+// に絞り、ETF/REIT/PRO Marketなどファンダメンタル分析の対象にならない区分は除外する。
+// 約3,100銘柄になる。かぶ1000型などの小型バリュー系ペルソナが本来の主戦場(超小型・中小型株)を
+// 候補に含められるよう、スタンダード市場まで対象にしている(プライムだけだと時価総額100億円
+// 以下がほぼ存在しない)。グロース市場は無配・赤字companies が多くグレアム系の基準と相性が
+// 悪いため対象外のまま。スキャン時間・非公式APIへの問い合わせ回数はプライム単独の約2倍になる。
+export function getScanUniverseTickers(): { ticker: string; name: string }[] {
+  return ENTRIES.filter((e) => e.market.includes("プライム") || e.market.includes("スタンダード")).map((e) => ({
     ticker: `${e.code}.T`,
     name: e.name,
   }));

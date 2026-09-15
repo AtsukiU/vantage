@@ -211,7 +211,7 @@ export function DailyScanBanner({ onStart, compact = false }: { onStart?: () => 
         <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">今日の取引を始めますか?</h2>
       </div>
       <p className="mt-1 text-xs text-[var(--text-secondary)]">
-        東証プライム(約1,550銘柄)とS&amp;P500(約500銘柄)をフルスキャンして「本日の注目銘柄」を更新します。運用アドバイザータブの判断材料もこれを基にします。実行には1〜3分程度かかります。
+        東証プライム・スタンダード(約3,100銘柄)とS&amp;P500(約500銘柄)をフルスキャンして「本日の注目銘柄」を更新します。運用アドバイザータブの判断材料もこれを基にします。実行には3〜6分程度かかります。
       </p>
       <button onClick={() => handleStart(false)} disabled={starting} className={`${GLASS_BTN_PRIMARY} mt-3`}>
         {starting ? "開始しています…" : "日本株・米国株をスキャン開始"}

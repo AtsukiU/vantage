@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { getJson, setJson, isKvConfigured } from "./kv";
-import { getPrimeMarketTickers } from "./jpListedDirectory";
+import { getScanUniverseTickers } from "./jpListedDirectory";
 import { getSp500Tickers } from "./usListedDirectory";
 import { computeStockScores } from "./computeStockScores";
 import type { CommitteeVerdict } from "./committeeScore";
@@ -14,7 +14,7 @@ import {
   MACRO_ROLE_TOTAL,
 } from "./dailyPickOverall";
 
-// 「本日の注目銘柄」: 東証プライム市場(約1,550社)またはS&P500(約500社)を1日1回フルスキャンし、
+// 「本日の注目銘柄」: 東証プライム・スタンダード市場(約3,100社)またはS&P500(約500社)を1日1回フルスキャンし、
 // ミネルヴィニ/CANSLIM/財務健全性/投資委員会各役のスコアを一括計算してキャッシュする。
 // ローカル単一プロセスのNext.js開発サーバー前提のシンプルな実装(インメモリの実行状態+
 // ディスク上のJSONキャッシュ)。銘柄詳細ページの都度計算とは違い、重い処理を1日1回にまとめて
@@ -167,7 +167,7 @@ function assignRsPercentiles(entries: DailyScreenEntry[]): void {
 
 async function runScan(market: ScreenMarket): Promise<void> {
   const date = todayJst();
-  const universe = market === "jp" ? getPrimeMarketTickers() : getSp500Tickers();
+  const universe = market === "jp" ? getScanUniverseTickers() : getSp500Tickers();
   states.set(market, {
     market,
     date,
