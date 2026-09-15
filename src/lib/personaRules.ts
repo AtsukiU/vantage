@@ -235,27 +235,23 @@ export function managerMajorityThreshold(activeCount: number = BASE_PERSONA_DEFS
   return Math.floor(activeCount / 2) + 1;
 }
 
-// 各運用者が「自分の一押し」とみなす上位件数。managerCandidatesの支持判定はこの中からだけ選ぶ
-// (単に合格ラインを超えているだけでなく、その人自身のランキングでも上位に入っている必要がある)。
-const MANAGER_TOP_N = 15;
-
 // managerの候補選定: 合議に参加する運用者(activeIds、既定は全員)のうち過半数が、それぞれの
-// 上位MANAGER_TOP_N件の中でこの銘柄を推している場合だけを、支持者数の多い順(同数なら
-// 総合評価順)に返す。人数が変わっても(=スタイル設定で一部除外されていても)「過半数」の
-// 意味を保つ。
+// 条件(passesFilter)を満たしている銘柄だけを、支持者数の多い順(同数なら総合評価順)に返す。
+// 以前は「その運用者自身のランキングで上位15位以内」という追加条件もあったが、各運用者が
+// 全く異なる指標(モメンタム順・PER×PBR順・ROE順など)でランキングするため、条件は満たして
+// いても複数の運用者で同時に上位15位に入る銘柄が実質ゼロになってしまっていた。単に条件を
+// 満たしているかどうかだけで支持とみなす方が、本来の「多数決」の趣旨に合う。
+// 人数が変わっても(=スタイル設定で一部除外されていても)「過半数」の意味を保つ。
 export function managerCandidates(
   pool: DailyScreenEntry[],
   held: Set<string>,
   activeIds: BasePersonaId[] = BASE_PERSONA_DEFS.map((d) => d.id as BasePersonaId)
 ): { entry: DailyScreenEntry; supporters: BasePersonaId[] }[] {
   const majorityThreshold = managerMajorityThreshold(activeIds.length);
-  const topTickersByPersona = new Map<BasePersonaId, Set<string>>(
-    activeIds.map((id) => [id, new Set(candidatesFor(id, pool, held).slice(0, MANAGER_TOP_N).map((e) => e.ticker))])
-  );
   const notHeld = pool.filter((e) => !held.has(e.ticker) && e.price != null && e.price > 0 && e.currency);
   const withSupport = notHeld.map((e) => ({
     entry: e,
-    supporters: activeIds.filter((id) => topTickersByPersona.get(id)!.has(e.ticker)),
+    supporters: supportersFor(e, activeIds),
   }));
   return withSupport
     .filter(({ supporters }) => supporters.length >= majorityThreshold)
