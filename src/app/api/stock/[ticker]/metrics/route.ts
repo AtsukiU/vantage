@@ -3,6 +3,7 @@ import { fetchStockMetrics } from "@/lib/stockMetrics";
 import { analyzeStock } from "@/lib/stockInsights";
 import { fetchSparkline } from "@/lib/stockChart";
 import { computeStockScores } from "@/lib/computeStockScores";
+import { isYahooProxyConfigured } from "@/lib/yahooProxyFetch";
 
 export const revalidate = 0;
 
@@ -47,6 +48,7 @@ export async function GET(
         },
         insights: analyzeStock(scores.metrics),
         sparkline,
+        _debugYahooProxyConfigured: isYahooProxyConfigured(),
       });
     }
 
@@ -75,6 +77,7 @@ export async function GET(
       },
       insights: analyzeStock(metrics),
       sparkline,
+      _debugYahooProxyConfigured: isYahooProxyConfigured(),
     });
   } catch (error) {
     console.error("Failed to fetch stock metrics", error);
