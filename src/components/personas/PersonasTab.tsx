@@ -8,7 +8,7 @@ import type { DailyScreenState } from "@/lib/dailyScreenStore";
 import { loadPortfolio, loadCashJpy, saveCashJpy } from "@/lib/portfolioStore";
 import { fetchMetricsBatch } from "@/lib/fetchMetricsBatch";
 import { computePortfolioAdvice, type PersonaAdvice } from "@/lib/portfolioAdvice";
-import type { FilterExplanation } from "@/lib/personaRules";
+import { activePersonaIds, type BasePersonaId, type FilterExplanation } from "@/lib/personaRules";
 import { loadPersonaStyle, savePersonaStyle } from "@/lib/personaStyleStore";
 import { FxOutlookCard } from "./FxOutlookCard";
 import { TrendBacktestCard } from "./TrendBacktestCard";
@@ -173,6 +173,9 @@ export function PersonasTab({
   }
 
   const scansMissing = scanReady && (!scanReady.jp || !scanReady.us);
+  // 選んだスタイルと反対の運用者は、統括マネージャーの合議からは除外される(が、カード自体は見え続ける)。
+  // それが分かるよう、対象外のカードは薄く表示する。
+  const activeIds = activePersonaIds(style);
 
   return (
     <section hidden={hidden} className="h-full">
@@ -277,15 +280,15 @@ export function PersonasTab({
               const def = PERSONA_DEFS.find((p) => p.id === id)!;
               const a = advice.find((x) => x.personaId === id)!;
               const section = STYLE_SECTIONS.find((sec) => sec.ids[0] === id);
+              const excluded = !def.isManager && !activeIds.includes(id as BasePersonaId);
               const card = (
                 <div
                   key={id}
                   className={def.isManager ? `${GLASS_CARD} lg:col-span-2` : GLASS_CARD}
-                  style={
-                    def.isManager
-                      ? { background: "var(--gradient-hero)", border: "1px solid var(--gradient-hero-border)" }
-                      : undefined
-                  }
+                  style={{
+                    ...(def.isManager ? { background: "var(--gradient-hero)", border: "1px solid var(--gradient-hero-border)" } : undefined),
+                    ...(excluded ? { opacity: 0.45 } : undefined),
+                  }}
                 >
                   <div className="flex items-center justify-between gap-1.5">
                     <div className="flex items-center gap-1.5">
@@ -298,6 +301,11 @@ export function PersonasTab({
                     </div>
                     {def.isManager && (
                       <span className="shrink-0 rounded-full bg-[var(--accent)] px-2 py-0.5 text-[9px] font-bold text-white">最終決定</span>
+                    )}
+                    {excluded && (
+                      <span className="shrink-0 rounded-full bg-[var(--fill-pill)] px-2 py-0.5 text-[9px] font-bold text-[var(--text-muted)]">
+                        統括の合議対象外
+                      </span>
                     )}
                   </div>
                   <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-[var(--text-muted)]" title={def.description}>{def.description}</p>
