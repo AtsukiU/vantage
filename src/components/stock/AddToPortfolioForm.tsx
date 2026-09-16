@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Check, X } from "lucide-react";
 import { loadPortfolio, savePortfolio, loadCashJpy, saveCashJpy, buyHolding } from "@/lib/portfolioStore";
 import { fetchMetricsBatch } from "@/lib/fetchMetricsBatch";
+import { brokerCommissionJpy } from "@/lib/brokerFees";
 import { GLASS_BTN_PRIMARY } from "@/lib/glassStyles";
 
 // 銘柄詳細ページから直接ポートフォリオへ追加できる、小さな購入フォーム。ポートフォリオタブの
@@ -138,6 +139,24 @@ export function AddToPortfolioForm({
               <input type="number" value={avgCost} onChange={(e) => setAvgCost(e.target.value)} className={inputBase} />
             </label>
           </div>
+          {(() => {
+            const cur = currency ?? (symbol.endsWith(".T") ? "JPY" : "USD");
+            const sharesNum = Number(shares);
+            const avgCostNum = Number(avgCost);
+            const hasTotal = Number.isFinite(sharesNum) && sharesNum > 0 && Number.isFinite(avgCostNum) && avgCostNum > 0;
+            if (!hasTotal) return null;
+            const totalNative = sharesNum * avgCostNum;
+            const feeJpy = brokerCommissionJpy(totalNative, cur, rate);
+            const totalJpy = (cur === "JPY" ? totalNative : totalNative * rate) + feeJpy;
+            return (
+              <p className="mt-1.5 text-[11px] text-[var(--text-secondary)]">
+                合計 {cur === "JPY" ? "¥" : cur === "USD" ? "$" : ""}
+                {totalNative.toLocaleString("ja-JP", { minimumFractionDigits: cur === "JPY" ? 0 : 2, maximumFractionDigits: cur === "JPY" ? 0 : 2 })}
+                {cur !== "JPY" && <>(手数料込み約¥{Math.round(totalJpy).toLocaleString("ja-JP")})</>}
+                {cur === "JPY" && feeJpy > 0 && <>(手数料込み¥{Math.round(totalJpy).toLocaleString("ja-JP")})</>}
+              </p>
+            );
+          })()}
           {cashJpy != null && (
             <p className="mt-1.5 text-[11px] text-[var(--text-muted)]">手元資金: ¥{Math.round(cashJpy).toLocaleString("ja-JP")}</p>
           )}

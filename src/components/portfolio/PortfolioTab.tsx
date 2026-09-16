@@ -483,7 +483,8 @@ export function PortfolioTab({
           )}
         </div>
 
-        <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
+        <div className={`${GLASS_CARD} mb-3 overflow-hidden p-0 sm:mb-4`}>
+        <div className="p-3 sm:p-4">
           <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">銘柄を購入</h2>
           <p className="mb-2 mt-1 text-[11px] text-[var(--text-muted)]">購入代金+手数料(SBI証券換算)を上の手元資金から自動的に差し引きます。</p>
           <StockSearchBar
@@ -498,56 +499,73 @@ export function PortfolioTab({
               });
             }}
           />
-          {pending && (
-            <div className="mt-2 flex flex-wrap items-end gap-3 rounded-xl bg-[var(--fill-subtle)] p-3">
-              <div className="text-sm font-semibold text-[var(--foreground)]">
-                {pending.name} <span className="text-xs text-[var(--text-secondary)]">{pending.symbol}</span>
-              </div>
-              <label className="flex flex-col text-xs text-[var(--text-secondary)]">
-                株数
-                <input
-                  type="number"
-                  min="0"
-                  value={shares}
-                  onChange={(e) => setShares(e.target.value)}
-                  className="mt-1 w-24 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-sm"
-                  placeholder="100"
-                />
-              </label>
-              <label className="flex flex-col text-xs text-[var(--text-secondary)]">
-                平均取得単価
-                <input
-                  type="number"
-                  min="0"
-                  value={avgCost}
-                  onChange={(e) => setAvgCost(e.target.value)}
-                  className="mt-1 w-28 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-sm"
-                  placeholder="2500"
-                />
-              </label>
-              <button onClick={handleAdd} className={GLASS_BTN_PRIMARY}>
-                購入する
-              </button>
-              <button onClick={() => setPending(null)} className="rounded-full px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--foreground)]">
-                キャンセル
-              </button>
-            </div>
-          )}
+          {pending &&
+            (() => {
+              const pendingCurrency = prices.get(pending.symbol)?.currency ?? (pending.symbol.endsWith(".T") ? "JPY" : "USD");
+              const sharesNum = Number(shares);
+              const avgCostNum = Number(avgCost);
+              const hasTotal = Number.isFinite(sharesNum) && sharesNum > 0 && Number.isFinite(avgCostNum) && avgCostNum > 0;
+              const totalNative = hasTotal ? sharesNum * avgCostNum : 0;
+              const feeJpy = hasTotal ? brokerCommissionJpy(totalNative, pendingCurrency, rate) : 0;
+              const totalJpy = toJpy(totalNative, pendingCurrency) + feeJpy;
+              return (
+                <div className="mt-2 flex flex-wrap items-end gap-3 rounded-xl bg-[var(--fill-subtle)] p-3">
+                  <div className="text-sm font-semibold text-[var(--foreground)]">
+                    {pending.name} <span className="text-xs text-[var(--text-secondary)]">{pending.symbol}</span>
+                  </div>
+                  <label className="flex flex-col text-xs text-[var(--text-secondary)]">
+                    株数
+                    <input
+                      type="number"
+                      min="0"
+                      value={shares}
+                      onChange={(e) => setShares(e.target.value)}
+                      className="mt-1 w-24 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-sm"
+                      placeholder="100"
+                    />
+                  </label>
+                  <label className="flex flex-col text-xs text-[var(--text-secondary)]">
+                    平均取得単価
+                    <input
+                      type="number"
+                      min="0"
+                      value={avgCost}
+                      onChange={(e) => setAvgCost(e.target.value)}
+                      className="mt-1 w-28 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-sm"
+                      placeholder="2500"
+                    />
+                  </label>
+                  <button onClick={handleAdd} className={GLASS_BTN_PRIMARY}>
+                    購入する
+                  </button>
+                  <button onClick={() => setPending(null)} className="rounded-full px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--foreground)]">
+                    キャンセル
+                  </button>
+                  {hasTotal && (
+                    <div className="w-full text-xs text-[var(--text-secondary)]">
+                      合計 {currencyPrefix(pendingCurrency)}
+                      {fmt(totalNative, pendingCurrency)}
+                      {pendingCurrency !== "JPY" && <> (手数料込み約¥{Math.round(totalJpy).toLocaleString("ja-JP")})</>}
+                      {pendingCurrency === "JPY" && feeJpy > 0 && <> (手数料込み¥{Math.round(totalJpy).toLocaleString("ja-JP")})</>}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           {formError && <p className="mt-2 text-xs text-red-600">{formError}</p>}
         </div>
 
-        {holdings.length > 0 && (
-          <div className="mb-2 flex justify-end">
-            <button
-              onClick={() => exportPortfolioCsv(holdings, prices)}
-              className="rounded-full border border-[var(--border-subtle)] bg-white/70 px-3 py-1.5 text-xs text-[var(--text-secondary)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
-            >
-              CSVでエクスポート
-            </button>
-          </div>
-        )}
-
-        <div className={`${GLASS_CARD} overflow-hidden p-0`}>
+        <div className="border-t border-[var(--border-faint)]">
+          {holdings.length > 0 && (
+            <div className="flex justify-end px-3 py-2 sm:px-4">
+              <button
+                onClick={() => exportPortfolioCsv(holdings, prices)}
+                className="rounded-full border border-[var(--border-subtle)] bg-white/70 px-3 py-1.5 text-xs text-[var(--text-secondary)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+              >
+                CSVでエクスポート
+              </button>
+            </div>
+          )}
           {holdings.length === 0 ? (
             <div className="p-8 text-center text-sm text-[var(--text-secondary)]">
               まだ保有銘柄がありません。上の検索から追加してください。
@@ -680,6 +698,7 @@ export function PortfolioTab({
             </div>
             </>
           )}
+        </div>
         </div>
         <p className="mb-4 mt-3 text-xs text-[var(--text-muted)]">
           保有情報はこの端末に保存されます(Upstash設定時は端末間で同期)。「売却」は全株売却として扱い、現在値(取れない場合は取得単価)で売却代金-手数料を手元資金へ加算します。
