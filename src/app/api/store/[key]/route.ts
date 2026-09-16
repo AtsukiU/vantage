@@ -12,6 +12,7 @@ const ALLOWED_KEYS = new Set([
   "portfolio-cash",
   "watchlist",
   "portfolio-history",
+  "portfolio-trades",
   "position-sizing-prefs",
 ]);
 

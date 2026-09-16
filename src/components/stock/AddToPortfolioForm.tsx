@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Check, X } from "lucide-react";
 import { loadPortfolio, savePortfolio, loadCashJpy, saveCashJpy, buyHolding } from "@/lib/portfolioStore";
+import { recordTrade } from "@/lib/portfolioTradeLog";
 import { fetchMetricsBatch } from "@/lib/fetchMetricsBatch";
 import { brokerCommissionJpy } from "@/lib/brokerFees";
 import { GLASS_BTN_PRIMARY } from "@/lib/glassStyles";
@@ -71,6 +72,19 @@ export function AddToPortfolioForm({
     await savePortfolio(result.holdings);
     await saveCashJpy(result.cashJpy);
     setCashJpy(result.cashJpy);
+    const sharesNum = Number(shares);
+    const avgCostNum = Number(avgCost);
+    void recordTrade({
+      date: new Date().toISOString(),
+      ticker: symbol,
+      name,
+      side: "buy",
+      shares: sharesNum,
+      price: avgCostNum,
+      currency: cur,
+      valueJpy: Math.round(cur === "JPY" ? sharesNum * avgCostNum : sharesNum * avgCostNum * rate),
+      plJpy: null,
+    });
     setSuccess(true);
     setShares("");
     window.setTimeout(() => {
