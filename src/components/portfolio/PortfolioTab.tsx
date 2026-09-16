@@ -17,14 +17,13 @@ import type { StockMetrics } from "@/lib/stockMetrics";
 import { brokerCommissionJpy } from "@/lib/brokerFees";
 import { GLASS_CARD, GLASS_BTN_PRIMARY, GLASS_UP, GLASS_DOWN } from "@/lib/glassStyles";
 import { getHistory, recordSnapshot, type PortfolioSnapshot } from "@/lib/portfolioHistoryStore";
-import { recordTrade, loadTradeLog, type PortfolioTradeEvent } from "@/lib/portfolioTradeLog";
+import { recordTrade } from "@/lib/portfolioTradeLog";
 import { computePortfolioHealth, type HealthLevel } from "@/lib/portfolioHealth";
 import { sectorLabelJa, SECTOR_ORDER } from "@/lib/sectorLabels";
 import { PortfolioValueChart } from "./PortfolioValueChart";
-import { PortfolioTradesChart } from "./PortfolioTradesChart";
 import { AllocationDonutChart } from "./AllocationDonutChart";
 import { TrailingStopBadge } from "../TrailingStopBadge";
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, ChevronRight } from "lucide-react";
 
 // good/warningは白文字を乗せる固定バッジ色なのでダークモードでも変えない
 // (watchはもともとテーマのaccent-strongを使っていて、これは元から白文字と両立する濃さなので維持)。
@@ -103,9 +102,11 @@ function exportPortfolioCsv(holdings: Holding[], prices: Map<string, StockMetric
 export function PortfolioTab({
   hidden,
   onOpenDetail,
+  onOpenHistoryDetail,
 }: {
   hidden: boolean;
   onOpenDetail: (symbol: string, name: string) => void;
+  onOpenHistoryDetail: () => void;
 }) {
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [prices, setPrices] = useState<Map<string, StockMetrics>>(new Map());
@@ -117,7 +118,6 @@ export function PortfolioTab({
   const [hydrated, setHydrated] = useState(false);
   const [usdJpyRate, setUsdJpyRate] = useState<number | null>(null);
   const [history, setHistory] = useState<PortfolioSnapshot[]>([]);
-  const [trades, setTrades] = useState<PortfolioTradeEvent[]>([]);
   const [cashJpy, setCashJpy] = useState(0);
   const [cashInput, setCashInput] = useState("");
   const [editingCash, setEditingCash] = useState(false);
@@ -130,12 +130,11 @@ export function PortfolioTab({
     // 他画面での変更が反映されないまま古い表示が残ってしまう)。
     if (hidden) return;
     let cancelled = false;
-    Promise.all([loadPortfolio(), getHistory(), loadCashJpy(), loadTradeLog()]).then(([h, hist, cash, tradeLog]) => {
+    Promise.all([loadPortfolio(), getHistory(), loadCashJpy()]).then(([h, hist, cash]) => {
       if (cancelled) return;
       setHoldings(h);
       setHistory(hist);
       setCashJpy(cash);
-      setTrades(tradeLog);
       setHydrated(true);
     });
     fetchMetricsBatch(["JPY=X"]).then((res) => {
@@ -199,7 +198,7 @@ export function PortfolioTab({
     void savePortfolio(result.holdings);
     setCashJpy(result.cashJpy);
     void saveCashJpy(result.cashJpy);
-    recordTrade({
+    void recordTrade({
       date: new Date().toISOString(),
       ticker: pending.symbol,
       name: pending.name,
@@ -209,7 +208,7 @@ export function PortfolioTab({
       currency,
       valueJpy: Math.round(toJpy(Number(shares) * Number(avgCost), currency)),
       plJpy: null,
-    }).then((entry) => setTrades((prev) => [...prev, entry]));
+    });
 
     setPending(null);
     setShares("");
@@ -234,7 +233,7 @@ export function PortfolioTab({
       setCashJpy(nextCash);
 
       const costJpy = toJpy(holding.avgCost * holding.shares, holding.currency);
-      recordTrade({
+      void recordTrade({
         date: new Date().toISOString(),
         ticker: holding.ticker,
         name: holding.name,
@@ -244,7 +243,7 @@ export function PortfolioTab({
         currency: holding.currency,
         valueJpy: Math.round(toJpy(tradeValueNative, holding.currency)),
         plJpy: Math.round(proceedsJpy - costJpy),
-      }).then((entry) => setTrades((prev) => [...prev, entry]));
+      });
     }
   }
 
@@ -359,19 +358,19 @@ export function PortfolioTab({
             )}
 
             <div className="mt-4 border-t border-[var(--border-subtle)] pt-4">
-              <div className="mb-2 text-xs font-semibold text-[var(--text-secondary)]">総資産の推移(現金+株式、円換算)</div>
-              <PortfolioValueChart history={history} />
-              <details className="group mt-3">
-                <summary className="cursor-pointer list-none text-[11px] font-semibold text-[var(--accent)]">
-                  <span className="inline-flex items-center gap-1">
-                    売買タイミングつきの詳細グラフを見る
-                    <span className="font-normal text-[var(--text-muted)] group-open:hidden">(クリックで開く)</span>
-                  </span>
-                </summary>
-                <div className="mt-3">
-                  <PortfolioTradesChart history={history} trades={trades} />
-                </div>
-              </details>
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-semibold text-[var(--text-secondary)]">総資産の推移(現金+株式、円換算)</span>
+                <button
+                  onClick={onOpenHistoryDetail}
+                  className="flex items-center gap-0.5 text-[11px] font-semibold text-[var(--accent)] hover:underline"
+                >
+                  売買タイミングつきの詳細を見る
+                  <ChevronRight size={12} strokeWidth={2.5} />
+                </button>
+              </div>
+              <button onClick={onOpenHistoryDetail} className="block w-full text-left" aria-label="資産推移の詳細ページを開く">
+                <PortfolioValueChart history={history} />
+              </button>
             </div>
 
             <div className="mt-4 grid gap-x-4 gap-y-4 border-t border-[var(--border-subtle)] pt-4 sm:grid-cols-3">

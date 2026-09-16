@@ -10,6 +10,7 @@ import { GlassPageShell } from "@/components/GlassPageShell";
 import { DashboardTab } from "@/components/dashboard/DashboardTab";
 import { StockTab, type StockSelection } from "@/components/stock/StockTab";
 import { PortfolioTab } from "@/components/portfolio/PortfolioTab";
+import { PortfolioHistoryTab } from "@/components/portfolio/PortfolioHistoryTab";
 import { CompareTab } from "@/components/compare/CompareTab";
 import { DailyPicksTab } from "@/components/dailypicks/DailyPicksTab";
 import { PersonasTab } from "@/components/personas/PersonasTab";
@@ -19,7 +20,17 @@ import type { Market } from "@/lib/feeds";
 import { StockSearchBar } from "@/components/stock/StockSearchBar";
 import { LayoutGrid, Newspaper, Star, Scale, Wallet, Users, Eye, Settings, Menu, X, type LucideIcon } from "lucide-react";
 
-type TabKey = "dashboard" | "news" | "stock" | "portfolio" | "compare" | "dailypicks" | "personas" | "watchlist" | "settings";
+type TabKey =
+  | "dashboard"
+  | "news"
+  | "stock"
+  | "portfolio"
+  | "portfolio-history"
+  | "compare"
+  | "dailypicks"
+  | "personas"
+  | "watchlist"
+  | "settings";
 
 const TABS: { key: TabKey; label: string; icon: LucideIcon }[] = [
   { key: "dashboard", label: "ダッシュボード", icon: LayoutGrid },
@@ -37,7 +48,7 @@ const TABS: { key: TabKey; label: string; icon: LucideIcon }[] = [
 // 直接入るため、ナビタイルとしては不要になった)。ただし検索結果を選ぶと?tab=stockへ
 // 遷移するので、VALID_TABSには引き続き含めておく必要がある(外すとURLが弾かれてダッシュ
 // ボードに戻されてしまう)。
-const VALID_TABS = new Set<string>([...TABS.map((t) => t.key), "settings", "stock"]);
+const VALID_TABS = new Set<string>([...TABS.map((t) => t.key), "settings", "stock", "portfolio-history"]);
 
 // useSearchParams()を使うコンポーネントは本番ビルドの静的プリレンダリング時に
 // Suspenseで包む必要があるため(包まないとビルドエラーになる)、実体はHomeContentに
@@ -326,7 +337,12 @@ function HomeContent() {
         <PersonasTab hidden={active !== "personas"} onOpenDetail={openStockDetail} />
         <CompareTab hidden={active !== "compare"} onOpenDetail={openStockDetail} />
         <WatchlistTab hidden={active !== "watchlist"} onOpenDetail={openStockDetail} />
-        <PortfolioTab hidden={active !== "portfolio"} onOpenDetail={openStockDetail} />
+        <PortfolioTab
+          hidden={active !== "portfolio"}
+          onOpenDetail={openStockDetail}
+          onOpenHistoryDetail={() => setActive("portfolio-history")}
+        />
+        <PortfolioHistoryTab hidden={active !== "portfolio-history"} onBack={() => setActive("portfolio")} />
         <SettingsTab hidden={active !== "settings"} />
         </main>
       </div>
