@@ -36,3 +36,36 @@ export async function recordTrade(event: Omit<PortfolioTradeEvent, "id">): Promi
   await saveSynced(KEY, "portfolio-trades", next);
   return entry;
 }
+
+// このログを追加する前から保有していた銘柄には買いイベントが記録されていないため、
+// 資産推移グラフにマーカーが出ない。現在の保有情報(Holding、平均取得単価・株数・追加日)から
+// 「買い」イベントを1件だけ遡って補完する(1回だけの一括購入として近似する。複数回に分けて
+// 買っていた場合の正確な購入履歴までは復元できないが、平均取得単価・合計株数・最初に
+// 買った日付は正しいので、実用上十分な近似になる)。同じ銘柄に既に買いイベントがあれば
+// 二重には補完しない。
+export async function backfillFromHoldings(
+  holdings: { ticker: string; name: string; shares: number; avgCost: number; currency: string; addedAt: string }[],
+  usdJpyRate: number
+): Promise<PortfolioTradeEvent[]> {
+  const existing = await loadTradeLog();
+  const hasBuy = new Set(existing.filter((t) => t.side === "buy").map((t) => t.ticker));
+  const missing = holdings.filter((h) => !hasBuy.has(h.ticker));
+  if (missing.length === 0) return existing;
+
+  const backfilled: PortfolioTradeEvent[] = missing.map((h) => ({
+    id: `${h.ticker}-buy-backfill-${h.addedAt}`,
+    date: h.addedAt,
+    ticker: h.ticker,
+    name: h.name,
+    side: "buy",
+    shares: h.shares,
+    price: h.avgCost,
+    currency: h.currency,
+    valueJpy: Math.round(h.currency === "JPY" ? h.avgCost * h.shares : h.avgCost * h.shares * usdJpyRate),
+    plJpy: null,
+  }));
+
+  const next = [...existing, ...backfilled].sort((a, b) => a.date.localeCompare(b.date)).slice(-MAX_ENTRIES);
+  await saveSynced(KEY, "portfolio-trades", next);
+  return next;
+}
