@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { GlassPageShell } from "../GlassPageShell";
 import { GLASS_CARD } from "@/lib/glassStyles";
 import { getHistory, type PortfolioSnapshot } from "@/lib/portfolioHistoryStore";
-import { loadTradeLog, backfillFromHoldings, type PortfolioTradeEvent } from "@/lib/portfolioTradeLog";
-import { loadPortfolio } from "@/lib/portfolioStore";
-import { fetchMetricsBatch } from "@/lib/fetchMetricsBatch";
+import { loadTradeLog, type PortfolioTradeEvent } from "@/lib/portfolioTradeLog";
 import { PortfolioTradesChart } from "./PortfolioTradesChart";
 import { ChevronLeft, TrendingUp } from "lucide-react";
 
@@ -24,19 +22,12 @@ export function PortfolioHistoryTab({ hidden, onBack }: { hidden: boolean; onBac
     let cancelled = false;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- タブを開き直すたびに読み込み中表示へ戻す
     setLoading(true);
-    Promise.all([getHistory(), loadTradeLog(), loadPortfolio(), fetchMetricsBatch(["JPY=X"])]).then(
-      async ([hist, tradeLog, holdings, priceMap]) => {
-        if (cancelled) return;
-        const usdJpyRate = priceMap.get("JPY=X")?.price ?? 150;
-        // このログ導入前から保有していた銘柄はマーカーが出ないため、現在の保有情報から
-        // 「買い」イベントを1件だけ遡って補完する(平均取得単価・合計株数の近似)。
-        const merged = await backfillFromHoldings(holdings, usdJpyRate);
-        if (cancelled) return;
-        setHistory(hist);
-        setTrades(merged.length > tradeLog.length ? merged : tradeLog);
-        setLoading(false);
-      }
-    );
+    Promise.all([getHistory(), loadTradeLog()]).then(([hist, tradeLog]) => {
+      if (cancelled) return;
+      setHistory(hist);
+      setTrades(tradeLog);
+      setLoading(false);
+    });
     return () => {
       cancelled = true;
     };
