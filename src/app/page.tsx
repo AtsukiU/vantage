@@ -107,13 +107,19 @@ function HomeContent() {
     us: null,
   });
   const [newsRefreshSignal, setNewsRefreshSignal] = useState(0);
+  // 運用アドバイザーの買い推奨から銘柄詳細に遷移した時だけ、その根拠(投資家名など)を一時的に
+  // 覚えておき、「ポートフォリオに追加」で実際に買った時に保有銘柄のバッジとして残す。
+  // それ以外の遷移(検索・関連銘柄クリックなど)は毎回reason無しでopenStockDetailを呼ぶため、
+  // 自然にリセットされる。
+  const [pendingBuyReason, setPendingBuyReason] = useState<string | null>(null);
 
   // スマホ幅ではサイドバーの代わりにヘッダーのハンバーガーボタンから開く
   // ドロップダウンメニューでタブ切り替えを行う(アイコンだけの横スクロール一覧は
   // タップ操作が難しいという指摘を受けて、よくあるスマホアプリ式の展開メニューに変更)。
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  function openStockDetail(symbol: string, name: string) {
+  function openStockDetail(symbol: string, name: string, buyReason?: string) {
+    setPendingBuyReason(buyReason ?? null);
     navigate({ tab: "stock", symbol, name });
   }
 
@@ -332,6 +338,8 @@ function HomeContent() {
           hidden={active !== "stock"}
           selection={stockSelection}
           onSelectionChange={setStockSelection}
+          buyReason={pendingBuyReason}
+          onBuyReasonConsumed={() => setPendingBuyReason(null)}
         />
         <DailyPicksTab hidden={active !== "dailypicks"} onOpenDetail={openStockDetail} />
         <PersonasTab hidden={active !== "personas"} onOpenDetail={openStockDetail} />

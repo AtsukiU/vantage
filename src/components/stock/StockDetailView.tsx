@@ -77,10 +77,14 @@ export function StockDetailView({
   symbol,
   name,
   onOpenDetail,
+  buyReason,
+  onBuyReasonConsumed,
 }: {
   symbol: string;
   name: string;
   onOpenDetail?: (symbol: string, name: string) => void;
+  buyReason?: string | null;
+  onBuyReasonConsumed?: () => void;
 }) {
   const [range, setRange] = useState<ChartRange>("1y");
   const [detail, setDetail] = useState<DetailResponse | null>(null);
@@ -305,7 +309,14 @@ export function StockDetailView({
         </div>
 
         <div className="mt-3">
-          <AddToPortfolioForm symbol={symbol} name={metrics.name ?? symbol} currentPrice={metrics.price} currency={metrics.currency} />
+          <AddToPortfolioForm
+            symbol={symbol}
+            name={metrics.name ?? symbol}
+            currentPrice={metrics.price}
+            currency={metrics.currency}
+            buyReason={buyReason}
+            onBought={onBuyReasonConsumed}
+          />
         </div>
 
         {/* quick facts strip */}

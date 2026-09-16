@@ -17,15 +17,20 @@ export function AddToPortfolioForm({
   name,
   currentPrice,
   currency,
+  buyReason,
+  onBought,
 }: {
   symbol: string;
   name: string;
   currentPrice: number | null;
   currency: string | null;
+  buyReason?: string | null; // 運用アドバイザーの推奨から遷移してきた場合の根拠(投資家名など)
+  onBought?: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  // 推奨から遷移してきた場合は最初からフォームを開いておく(すぐ株数を入力できるように)。
+  const [open, setOpen] = useState(() => !!buyReason);
   const [shares, setShares] = useState("");
-  const [avgCost, setAvgCost] = useState("");
+  const [avgCost, setAvgCost] = useState(() => (buyReason && currentPrice != null ? String(currentPrice) : ""));
   const [cashJpy, setCashJpy] = useState<number | null>(null);
   const [rate, setRate] = useState(150);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +69,7 @@ export function AddToPortfolioForm({
       avgCost: Number(avgCost),
       currency: cur,
       usdJpyRate: rate,
+      buyReason: buyReason ?? undefined,
     });
     if (!result.ok) {
       setError(result.error);
@@ -72,6 +78,7 @@ export function AddToPortfolioForm({
     await savePortfolio(result.holdings);
     await saveCashJpy(result.cashJpy);
     setCashJpy(result.cashJpy);
+    onBought?.();
     const sharesNum = Number(shares);
     const avgCostNum = Number(avgCost);
     void recordTrade({
@@ -137,6 +144,11 @@ export function AddToPortfolioForm({
               <X size={14} strokeWidth={2.25} />
             </button>
           </div>
+          {buyReason && (
+            <p className="mt-1 text-[11px] text-[var(--accent)]">
+              「{buyReason}」の推奨から追加 — 保有銘柄一覧にバッジとして残ります
+            </p>
+          )}
           <div className="mt-2 grid grid-cols-2 gap-2">
             <label className="flex flex-col gap-1 text-[11px] text-[var(--text-secondary)]">
               株数

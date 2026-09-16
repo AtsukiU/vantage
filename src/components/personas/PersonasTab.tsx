@@ -8,7 +8,7 @@ import type { DailyScreenState } from "@/lib/dailyScreenStore";
 import { loadPortfolio, loadCashJpy, saveCashJpy } from "@/lib/portfolioStore";
 import { fetchMetricsBatch } from "@/lib/fetchMetricsBatch";
 import { computePortfolioAdvice, type PersonaAdvice } from "@/lib/portfolioAdvice";
-import { activePersonaIds, type BasePersonaId, type FilterExplanation } from "@/lib/personaRules";
+import { activePersonaIds, BASE_LABEL_SHORT, type BasePersonaId, type FilterExplanation } from "@/lib/personaRules";
 import { loadPersonaStyle, savePersonaStyle } from "@/lib/personaStyleStore";
 import { FxOutlookCard } from "./FxOutlookCard";
 import { TrendBacktestCard } from "./TrendBacktestCard";
@@ -91,7 +91,7 @@ export function PersonasTab({
   onOpenDetail,
 }: {
   hidden: boolean;
-  onOpenDetail: (symbol: string, name: string) => void;
+  onOpenDetail: (symbol: string, name: string, buyReason?: string) => void;
 }) {
   const [scanReady, setScanReady] = useState<{ jp: boolean; us: boolean } | null>(null);
   const [advice, setAdvice] = useState<PersonaAdvice[] | null>(null);
@@ -281,6 +281,8 @@ export function PersonasTab({
               const a = advice.find((x) => x.personaId === id)!;
               const section = STYLE_SECTIONS.find((sec) => sec.ids[0] === id);
               const excluded = !def.isManager && !activeIds.includes(id as BasePersonaId);
+              // 買い推奨から実際に買った時、保有銘柄のバッジに残す根拠ラベル(短い投資家名/統括マネージャー)。
+              const buyReasonLabel = def.isManager ? "統括マネージャー" : BASE_LABEL_SHORT[id as BasePersonaId];
               const card = (
                 <div
                   key={id}
@@ -334,7 +336,7 @@ export function PersonasTab({
                             <DetailTooltip detail={b.detail} />
                             <div className="flex items-center justify-between">
                               <button
-                                onClick={() => onOpenDetail(b.ticker, b.name ?? b.ticker)}
+                                onClick={() => onOpenDetail(b.ticker, b.name ?? b.ticker, buyReasonLabel)}
                                 className="font-semibold hover:underline"
                                 style={{ color: b.affordableNow ? "var(--foreground)" : "var(--text-secondary)" }}
                               >

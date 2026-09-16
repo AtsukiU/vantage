@@ -14,13 +14,20 @@ export interface Holding {
   avgCost: number; // 1株あたりの平均取得単価(銘柄の現地通貨)
   currency: string;
   addedAt: string; // ISO
+  buyReasons?: string[]; // 運用アドバイザーの推奨から買った場合の根拠(投資家名など、複数買い増した分は重複なく蓄積)
 }
 
 const STORAGE_KEY = "stock-portfolio-v1";
 
+function mergeBuyReasons(a?: string[], b?: string[]): string[] | undefined {
+  const merged = Array.from(new Set([...(a ?? []), ...(b ?? [])]));
+  return merged.length > 0 ? merged : undefined;
+}
+
 // 同一銘柄(ティッカー)の保有行を1本に統合する。株数は合算し、取得単価は株数加重平均で
 // 再計算する(例: 10株@1000円 + 10株@1200円 → 20株@1100円)。idとaddedAtは最初に
 // 買った行のものを引き継ぐ(以後の「売却」ボタンが指す対象が変わらないようにするため)。
+// buyReasonsは重複なく合算する(別々の根拠で買い増していた場合、両方バッジに残す)。
 export function mergeHoldings(holdings: Holding[]): Holding[] {
   const byTicker = new Map<string, Holding>();
   for (const h of holdings) {
@@ -37,6 +44,7 @@ export function mergeHoldings(holdings: Holding[]): Holding[] {
       shares: totalShares,
       avgCost: weightedCost,
       addedAt: earlier.addedAt,
+      buyReasons: mergeBuyReasons(existing.buyReasons, h.buyReasons),
     });
   }
   return Array.from(byTicker.values());
@@ -65,7 +73,11 @@ export function addHolding(
   if (existing) {
     const totalShares = existing.shares + input.shares;
     const weightedCost = totalShares > 0 ? (existing.avgCost * existing.shares + input.avgCost * input.shares) / totalShares : existing.avgCost;
-    return holdings.map((h) => (h.id === existing.id ? { ...h, shares: totalShares, avgCost: weightedCost } : h));
+    return holdings.map((h) =>
+      h.id === existing.id
+        ? { ...h, shares: totalShares, avgCost: weightedCost, buyReasons: mergeBuyReasons(existing.buyReasons, input.buyReasons) }
+        : h
+    );
   }
   const holding: Holding = {
     ...input,
@@ -104,12 +116,13 @@ export interface BuyHoldingInput {
   avgCost: number;
   currency: string;
   usdJpyRate: number;
+  buyReason?: string; // 運用アドバイザーの推奨から買った場合の根拠(投資家名など)
 }
 
 export type BuyHoldingResult = { ok: true; holdings: Holding[]; cashJpy: number } | { ok: false; error: string };
 
 export function buyHolding(input: BuyHoldingInput): BuyHoldingResult {
-  const { holdings, cashJpy, ticker, name, shares, avgCost, currency, usdJpyRate } = input;
+  const { holdings, cashJpy, ticker, name, shares, avgCost, currency, usdJpyRate, buyReason } = input;
   if (!Number.isFinite(shares) || shares <= 0) return { ok: false, error: "株数を正しく入力してください" };
   if (!Number.isFinite(avgCost) || avgCost <= 0) return { ok: false, error: "平均取得単価を正しく入力してください" };
 
@@ -124,6 +137,6 @@ export function buyHolding(input: BuyHoldingInput): BuyHoldingResult {
     };
   }
 
-  const nextHoldings = addHolding(holdings, { ticker, name, shares, avgCost, currency });
+  const nextHoldings = addHolding(holdings, { ticker, name, shares, avgCost, currency, buyReasons: buyReason ? [buyReason] : undefined });
   return { ok: true, holdings: nextHoldings, cashJpy: cashJpy - costJpy };
 }

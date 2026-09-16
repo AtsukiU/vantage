@@ -13,9 +13,11 @@ interface StockTabProps {
   hidden: boolean;
   selection: StockSelection | null;
   onSelectionChange: (selection: StockSelection) => void;
+  buyReason?: string | null;
+  onBuyReasonConsumed?: () => void;
 }
 
-export function StockTab({ hidden, selection, onSelectionChange }: StockTabProps) {
+export function StockTab({ hidden, selection, onSelectionChange, buyReason, onBuyReasonConsumed }: StockTabProps) {
   return (
     <section hidden={hidden} className="h-full">
       <GlassPageShell>
@@ -27,6 +29,8 @@ export function StockTab({ hidden, selection, onSelectionChange }: StockTabProps
             symbol={selection.symbol}
             name={selection.name}
             onOpenDetail={(symbol, name) => onSelectionChange({ symbol, name })}
+            buyReason={buyReason}
+            onBuyReasonConsumed={onBuyReasonConsumed}
           />
         ) : (
           <div className="rounded-[18px] border border-dashed border-[var(--border-subtle)] bg-white/60 p-10 text-center text-[12.5px] text-[var(--text-secondary)]">

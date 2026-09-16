@@ -652,6 +652,15 @@ export function PortfolioTab({
                           {h.ticker} ・ {h.shares.toLocaleString()}株 @ {currencyPrefix(h.currency)}
                           {fmt(h.avgCost, h.currency)}
                         </div>
+                        {h.buyReasons && h.buyReasons.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {h.buyReasons.map((r) => (
+                              <span key={r} className="rounded-full bg-[var(--accent)]/15 px-1.5 py-0.5 text-[9px] font-semibold text-[var(--accent)]">
+                                {r}の推奨
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </button>
                       <button onClick={() => setConfirmingSellId(h.id)} className="shrink-0 text-xs text-[var(--text-muted)] hover:text-red-600">
                         売却
@@ -714,6 +723,15 @@ export function PortfolioTab({
                           {h.name}
                         </button>
                         <div className="font-mono text-xs text-[var(--text-secondary)]">{h.ticker}</div>
+                        {h.buyReasons && h.buyReasons.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {h.buyReasons.map((r) => (
+                              <span key={r} className="rounded-full bg-[var(--accent)]/15 px-1.5 py-0.5 text-[9px] font-semibold text-[var(--accent)]">
+                                {r}の推奨
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-2.5 tabular-nums text-[var(--foreground)]">{h.shares.toLocaleString()}</td>
                       <td className="px-4 py-2.5 tabular-nums text-[var(--foreground)]">
