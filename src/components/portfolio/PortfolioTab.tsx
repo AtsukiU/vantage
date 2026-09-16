@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { GlassPageShell } from "../GlassPageShell";
 import { StockSearchBar } from "../stock/StockSearchBar";
 import {
@@ -15,7 +16,7 @@ import {
 import { fetchMetricsBatch } from "@/lib/fetchMetricsBatch";
 import type { StockMetrics } from "@/lib/stockMetrics";
 import { brokerCommissionJpy } from "@/lib/brokerFees";
-import { GLASS_CARD, GLASS_BTN_PRIMARY, GLASS_UP, GLASS_DOWN } from "@/lib/glassStyles";
+import { GLASS_CARD, GLASS_BTN_PRIMARY, GLASS_BTN_GHOST, GLASS_UP, GLASS_DOWN } from "@/lib/glassStyles";
 import { getHistory, recordSnapshot, type PortfolioSnapshot } from "@/lib/portfolioHistoryStore";
 import { recordTrade } from "@/lib/portfolioTradeLog";
 import { computePortfolioHealth, type HealthLevel } from "@/lib/portfolioHealth";
@@ -123,6 +124,7 @@ export function PortfolioTab({
   const [editingCash, setEditingCash] = useState(false);
   const [depositing, setDepositing] = useState(false);
   const [depositInput, setDepositInput] = useState("");
+  const [confirmingSellId, setConfirmingSellId] = useState<string | null>(null);
 
   useEffect(() => {
     // 銘柄詳細ページの「ポートフォリオに追加」など、このタブの外から保有株・手元資金が
@@ -215,7 +217,9 @@ export function PortfolioTab({
     setAvgCost("");
   }
 
-  function handleRemove(id: string) {
+  // 「売却」ボタンは誤タップで即売却されないよう、確認ポップアップを経由してから実行する
+  // (confirmingSellIdに対象のholding.idをセットし、ポップアップの「売却する」で実行)。
+  function executeRemove(id: string) {
     const holding = holdings.find((h) => h.id === id);
     const next = removeHolding(holdings, id);
     setHoldings(next);
@@ -245,6 +249,7 @@ export function PortfolioTab({
         plJpy: Math.round(proceedsJpy - costJpy),
       });
     }
+    setConfirmingSellId(null);
   }
 
   function handleCashDelta(sign: 1 | -1) {
@@ -319,6 +324,20 @@ export function PortfolioTab({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, loadingPrices, totalValueJpy > 0, cashJpy]);
+
+  // 「売却」ボタン押下時に出す確認ポップアップ用のプレビュー計算(executeRemoveと同じ式)。
+  const sellPreview = (() => {
+    if (!confirmingSellId) return null;
+    const h = holdings.find((x) => x.id === confirmingSellId);
+    if (!h) return null;
+    const price = prices.get(h.ticker)?.price ?? h.avgCost;
+    const tradeValueNative = price * h.shares;
+    const feeJpy = brokerCommissionJpy(tradeValueNative, h.currency, rate);
+    const proceedsJpy = toJpy(tradeValueNative, h.currency) - feeJpy;
+    const costJpy = toJpy(h.avgCost * h.shares, h.currency);
+    const plJpy = proceedsJpy - costJpy;
+    return { holding: h, price, feeJpy, proceedsJpy, plJpy };
+  })();
 
   return (
     <section hidden={hidden} className="h-full">
@@ -634,7 +653,7 @@ export function PortfolioTab({
                           {fmt(h.avgCost, h.currency)}
                         </div>
                       </button>
-                      <button onClick={() => handleRemove(h.id)} className="shrink-0 text-xs text-[var(--text-muted)] hover:text-red-600">
+                      <button onClick={() => setConfirmingSellId(h.id)} className="shrink-0 text-xs text-[var(--text-muted)] hover:text-red-600">
                         売却
                       </button>
                     </div>
@@ -724,7 +743,7 @@ export function PortfolioTab({
                         />
                       </td>
                       <td className="px-4 py-2.5 text-right">
-                        <button onClick={() => handleRemove(h.id)} className="text-xs text-[var(--text-muted)] hover:text-red-600">
+                        <button onClick={() => setConfirmingSellId(h.id)} className="text-xs text-[var(--text-muted)] hover:text-red-600">
                           売却
                         </button>
                       </td>
@@ -742,6 +761,72 @@ export function PortfolioTab({
           保有情報はこの端末に保存されます(Upstash設定時は端末間で同期)。「売却」は全株売却として扱い、現在値(取れない場合は取得単価)で売却代金-手数料を手元資金へ加算します。
         </p>
       </GlassPageShell>
+
+      <AnimatePresence>
+        {sellPreview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            onClick={() => setConfirmingSellId(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 4 }}
+              transition={{ type: "spring", stiffness: 420, damping: 34 }}
+              className="w-full max-w-sm rounded-[18px] border border-[var(--border-subtle)] bg-[var(--surface)] p-5 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-[13px] font-bold text-[var(--foreground)]">
+                {sellPreview.holding.name}を売却しますか?
+              </h3>
+              <p className="mt-1 text-[11px] text-[var(--text-muted)]">この操作は取り消せません。</p>
+              <div className="mt-3 space-y-1.5 text-[12.5px]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[var(--text-secondary)]">株数</span>
+                  <span className="font-semibold text-[var(--foreground)]">{sellPreview.holding.shares.toLocaleString()}株(全株)</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[var(--text-secondary)]">売却単価</span>
+                  <span className="font-semibold text-[var(--foreground)]">
+                    {currencyPrefix(sellPreview.holding.currency)}
+                    {fmt(sellPreview.price, sellPreview.holding.currency)}
+                  </span>
+                </div>
+                {sellPreview.feeJpy > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-secondary)]">手数料目安</span>
+                    <span className="text-[var(--foreground)]">¥{Math.round(sellPreview.feeJpy).toLocaleString("ja-JP")}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-[var(--text-secondary)]">手取り(円換算)</span>
+                  <span className="font-semibold text-[var(--foreground)]">¥{Math.round(sellPreview.proceedsJpy).toLocaleString("ja-JP")}</span>
+                </div>
+                <div className="flex items-center justify-between border-t border-[var(--border-faint)] pt-1.5">
+                  <span className="text-[var(--text-secondary)]">実現損益</span>
+                  <span className="font-semibold" style={{ color: sellPreview.plJpy >= 0 ? GLASS_UP : GLASS_DOWN }}>
+                    {sellPreview.plJpy >= 0 ? "+" : ""}
+                    {"¥"}
+                    {Math.round(sellPreview.plJpy).toLocaleString("ja-JP")}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <button onClick={() => executeRemove(sellPreview.holding.id)} className={`${GLASS_BTN_PRIMARY} flex-1 justify-center`}>
+                  売却する
+                </button>
+                <button onClick={() => setConfirmingSellId(null)} className={`${GLASS_BTN_GHOST} flex-1 justify-center`}>
+                  キャンセル
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
