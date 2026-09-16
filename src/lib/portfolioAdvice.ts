@@ -102,7 +102,7 @@ export function computePortfolioAdvice(
 
     // 買い推奨: このパーソナが新規に支持する銘柄(既保有は除く)
     const rawCandidates = def.isManager
-      ? managerCandidates(pool, heldTickers, activeIds).map(({ entry, supporters }) => ({
+      ? managerCandidates(pool, heldTickers, activeIds, style).map(({ entry, supporters }) => ({
           entry,
           reason: `合議採用(${supporters.map((s) => BASE_LABEL_SHORT[s]).join("・")}が支持)`,
         }))

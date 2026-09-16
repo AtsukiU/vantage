@@ -174,11 +174,12 @@ interface DayContext {
   jpResults: DailyScreenEntry[];
   usdJpy: number;
   activeIds: BasePersonaId[]; // スタイル設定で合議に参加する運用者(統括マネージャー用)
+  preference: PersonaStyle | null | undefined; // 選んだスタイル(候補の並び順の調整に使う)
 }
 
 // 1パーソナ分、1日分の決済判定→エントリー判定を行い、口座を直接更新する。
 function processPersonaForDay(def: (typeof PERSONA_DEFS)[number], acc: PersonaAccount, ctx: DayContext): void {
-  const { date, pool, poolMap, jpResults, usdJpy, activeIds } = ctx;
+  const { date, pool, poolMap, jpResults, usdJpy, activeIds, preference } = ctx;
 
   // 1. 決済判定
     const remaining: PersonaHolding[] = [];
@@ -211,7 +212,7 @@ function processPersonaForDay(def: (typeof PERSONA_DEFS)[number], acc: PersonaAc
     const held = new Set(acc.holdings.map((h) => h.ticker));
     const equity = accountEquityJpy(acc, poolMap, usdJpy);
     const candidates: { entry: DailyScreenEntry; reason: string }[] = def.isManager
-      ? managerCandidates(pool, held, activeIds).map(({ entry, supporters }) => ({
+      ? managerCandidates(pool, held, activeIds, preference).map(({ entry, supporters }) => ({
           entry,
           reason: `合議採用(${supporters.map((s) => BASE_LABEL_SHORT[s]).join("・")}が支持)`,
         }))
@@ -300,7 +301,7 @@ export async function runPersonasNow(style?: PersonaStyle | null): Promise<Perso
   const fx = await fetchStockMetrics("JPY=X").catch(() => null);
   const usdJpy = fx?.price ?? state.usdJpy ?? 150;
 
-  const ctx: DayContext = { date, pool, poolMap, jpResults: jpState.results, usdJpy, activeIds: activePersonaIds(style) };
+  const ctx: DayContext = { date, pool, poolMap, jpResults: jpState.results, usdJpy, activeIds: activePersonaIds(style), preference: style };
   for (const def of PERSONA_DEFS) {
     processPersonaForDay(def, state.accounts[def.id], ctx);
   }

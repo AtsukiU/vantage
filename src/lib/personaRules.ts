@@ -26,6 +26,8 @@ export function activePersonaIds(preference: PersonaStyle | null | undefined): B
   return BASE_PERSONA_DEFS.filter((d) => d.style !== opposite).map((d) => d.id as BasePersonaId);
 }
 
+const STYLE_BY_ID = new Map<BasePersonaId, PersonaStyle>(BASE_PERSONA_DEFS.map((d) => [d.id as BasePersonaId, d.style]));
+
 // ISO日付文字列(YYYY-MM-DD)から、今日を起点とした日数を返す(未来ならプラス)。
 function daysUntil(dateStr: string): number {
   const target = new Date(`${dateStr}T00:00:00Z`).getTime();
@@ -245,7 +247,8 @@ export function managerMajorityThreshold(activeCount: number = BASE_PERSONA_DEFS
 export function managerCandidates(
   pool: DailyScreenEntry[],
   held: Set<string>,
-  activeIds: BasePersonaId[] = BASE_PERSONA_DEFS.map((d) => d.id as BasePersonaId)
+  activeIds: BasePersonaId[] = BASE_PERSONA_DEFS.map((d) => d.id as BasePersonaId),
+  preference?: PersonaStyle | null
 ): { entry: DailyScreenEntry; supporters: BasePersonaId[] }[] {
   const majorityThreshold = managerMajorityThreshold(activeIds.length);
   const notHeld = pool.filter((e) => !held.has(e.ticker) && e.price != null && e.price > 0 && e.currency);
@@ -253,10 +256,17 @@ export function managerCandidates(
     entry: e,
     supporters: supportersFor(e, activeIds),
   }));
+  // スタイル設定(バリュー重視/グロース重視)が選ばれている時は、支持者数が同じなら
+  // 「選んだスタイルの運用者からの支持者数」が多い方を上位にする(中立の運用者だけに
+  // 支持されている、選んでいない方の系統寄りの銘柄が下に沈むようにするため)。
+  const styleMatchCount = (supporters: BasePersonaId[]) =>
+    preference ? supporters.filter((id) => STYLE_BY_ID.get(id) === preference).length : 0;
   return withSupport
     .filter(({ supporters }) => supporters.length >= majorityThreshold)
     .sort((a, b) => {
       if (b.supporters.length !== a.supporters.length) return b.supporters.length - a.supporters.length;
+      const matchDiff = styleMatchCount(b.supporters) - styleMatchCount(a.supporters);
+      if (matchDiff !== 0) return matchDiff;
       return computeOverallScore(b.entry).score - computeOverallScore(a.entry).score;
     });
 }
