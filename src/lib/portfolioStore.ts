@@ -18,9 +18,39 @@ export interface Holding {
 
 const STORAGE_KEY = "stock-portfolio-v1";
 
+// 同一銘柄(ティッカー)の保有行を1本に統合する。株数は合算し、取得単価は株数加重平均で
+// 再計算する(例: 10株@1000円 + 10株@1200円 → 20株@1100円)。idとaddedAtは最初に
+// 買った行のものを引き継ぐ(以後の「売却」ボタンが指す対象が変わらないようにするため)。
+export function mergeHoldings(holdings: Holding[]): Holding[] {
+  const byTicker = new Map<string, Holding>();
+  for (const h of holdings) {
+    const existing = byTicker.get(h.ticker);
+    if (!existing) {
+      byTicker.set(h.ticker, { ...h });
+      continue;
+    }
+    const totalShares = existing.shares + h.shares;
+    const weightedCost = totalShares > 0 ? (existing.avgCost * existing.shares + h.avgCost * h.shares) / totalShares : existing.avgCost;
+    const earlier = existing.addedAt <= h.addedAt ? existing : h;
+    byTicker.set(h.ticker, {
+      ...existing,
+      shares: totalShares,
+      avgCost: weightedCost,
+      addedAt: earlier.addedAt,
+    });
+  }
+  return Array.from(byTicker.values());
+}
+
 export async function loadPortfolio(): Promise<Holding[]> {
   const value = await loadSynced<Holding[]>(STORAGE_KEY, "portfolio", []);
-  return Array.isArray(value) ? value : [];
+  const holdings = Array.isArray(value) ? value : [];
+  const merged = mergeHoldings(holdings);
+  if (merged.length !== holdings.length) {
+    // 過去に同じ銘柄を複数回買って行が分かれていた分を、読み込み時に統合して保存し直す。
+    await savePortfolio(merged);
+  }
+  return merged;
 }
 
 export async function savePortfolio(holdings: Holding[]): Promise<void> {
@@ -31,6 +61,12 @@ export function addHolding(
   holdings: Holding[],
   input: Omit<Holding, "id" | "addedAt">
 ): Holding[] {
+  const existing = holdings.find((h) => h.ticker === input.ticker);
+  if (existing) {
+    const totalShares = existing.shares + input.shares;
+    const weightedCost = totalShares > 0 ? (existing.avgCost * existing.shares + input.avgCost * input.shares) / totalShares : existing.avgCost;
+    return holdings.map((h) => (h.id === existing.id ? { ...h, shares: totalShares, avgCost: weightedCost } : h));
+  }
   const holding: Holding = {
     ...input,
     id: `${input.ticker}-${Date.now()}`,

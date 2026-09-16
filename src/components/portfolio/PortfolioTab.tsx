@@ -598,19 +598,24 @@ export function PortfolioTab({
                         />
                       </span>
                     </div>
+                    <div className="text-right text-[11px] text-[var(--text-muted)]">
+                      評価額 {currencyPrefix(h.currency)}
+                      {fmt(value, h.currency)}
+                    </div>
                   </div>
                 );
               })}
             </div>
 
             <div className="hidden overflow-x-auto md:block">
-            <table className="w-full min-w-[560px] text-sm">
+            <table className="w-full min-w-[640px] text-sm">
               <thead className="border-b border-[var(--border-subtle)] bg-[var(--fill-subtle)] text-left text-xs text-[var(--text-secondary)]">
                 <tr>
                   <th className="px-4 py-2 font-medium">銘柄</th>
                   <th className="px-4 py-2 font-medium">株数</th>
                   <th className="px-4 py-2 font-medium">取得単価</th>
                   <th className="px-4 py-2 font-medium">現在値</th>
+                  <th className="px-4 py-2 font-medium">評価額</th>
                   <th className="px-4 py-2 font-medium">評価損益</th>
                   <th className="px-4 py-2" />
                 </tr>
@@ -646,6 +651,10 @@ export function PortfolioTab({
                           : price != null
                           ? `${currencyPrefix(h.currency)}${fmt(price, h.currency)}`
                           : "—"}
+                      </td>
+                      <td className="px-4 py-2.5 tabular-nums text-[var(--foreground)]">
+                        {currencyPrefix(h.currency)}
+                        {fmt(value, h.currency)}
                       </td>
                       <td className="px-4 py-2.5 text-[15px] tabular-nums font-semibold" style={{ color: up ? GLASS_UP : GLASS_DOWN }}>
                         {currencyPrefix(h.currency)}
