@@ -115,6 +115,8 @@ export function PortfolioTab({
   const [pending, setPending] = useState<{ symbol: string; name: string } | null>(null);
   const [shares, setShares] = useState("");
   const [avgCost, setAvgCost] = useState("");
+  const [buyMemo, setBuyMemo] = useState("");
+  const [sellMemo, setSellMemo] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [usdJpyRate, setUsdJpyRate] = useState<number | null>(null);
@@ -210,11 +212,13 @@ export function PortfolioTab({
       currency,
       valueJpy: Math.round(toJpy(Number(shares) * Number(avgCost), currency)),
       plJpy: null,
+      memo: buyMemo.trim() || undefined,
     });
 
     setPending(null);
     setShares("");
     setAvgCost("");
+    setBuyMemo("");
   }
 
   // 「売却」ボタンは誤タップで即売却されないよう、確認ポップアップを経由してから実行する
@@ -247,9 +251,11 @@ export function PortfolioTab({
         currency: holding.currency,
         valueJpy: Math.round(toJpy(tradeValueNative, holding.currency)),
         plJpy: Math.round(proceedsJpy - costJpy),
+        memo: sellMemo.trim() || undefined,
       });
     }
     setConfirmingSellId(null);
+    setSellMemo("");
   }
 
   function handleCashDelta(sign: 1 | -1) {
@@ -592,10 +598,26 @@ export function PortfolioTab({
                       placeholder="2500"
                     />
                   </label>
+                  <label className="flex min-w-[200px] flex-1 flex-col text-xs text-[var(--text-secondary)]">
+                    メモ(任意)
+                    <input
+                      type="text"
+                      value={buyMemo}
+                      onChange={(e) => setBuyMemo(e.target.value)}
+                      className="mt-1 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-sm"
+                      placeholder="なぜ買うか、など"
+                    />
+                  </label>
                   <button onClick={handleAdd} className={GLASS_BTN_PRIMARY}>
                     購入する
                   </button>
-                  <button onClick={() => setPending(null)} className="rounded-full px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--foreground)]">
+                  <button
+                    onClick={() => {
+                      setPending(null);
+                      setBuyMemo("");
+                    }}
+                    className="rounded-full px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--foreground)]"
+                  >
                     キャンセル
                   </button>
                   {hasTotal && (
@@ -788,7 +810,10 @@ export function PortfolioTab({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-            onClick={() => setConfirmingSellId(null)}
+            onClick={() => {
+              setConfirmingSellId(null);
+              setSellMemo("");
+            }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -833,11 +858,27 @@ export function PortfolioTab({
                   </span>
                 </div>
               </div>
+              <label className="mt-3 flex flex-col text-[11px] text-[var(--text-secondary)]">
+                メモ(任意)
+                <input
+                  type="text"
+                  value={sellMemo}
+                  onChange={(e) => setSellMemo(e.target.value)}
+                  className="mt-1 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-[12.5px]"
+                  placeholder="なぜ売るか、など"
+                />
+              </label>
               <div className="mt-4 flex gap-2">
                 <button onClick={() => executeRemove(sellPreview.holding.id)} className={`${GLASS_BTN_PRIMARY} flex-1 justify-center`}>
                   売却する
                 </button>
-                <button onClick={() => setConfirmingSellId(null)} className={`${GLASS_BTN_GHOST} flex-1 justify-center`}>
+                <button
+                  onClick={() => {
+                    setConfirmingSellId(null);
+                    setSellMemo("");
+                  }}
+                  className={`${GLASS_BTN_GHOST} flex-1 justify-center`}
+                >
                   キャンセル
                 </button>
               </div>

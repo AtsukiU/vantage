@@ -31,6 +31,7 @@ export function AddToPortfolioForm({
   const [open, setOpen] = useState(() => !!buyReason);
   const [shares, setShares] = useState("");
   const [avgCost, setAvgCost] = useState(() => (buyReason && currentPrice != null ? String(currentPrice) : ""));
+  const [memo, setMemo] = useState("");
   const [cashJpy, setCashJpy] = useState<number | null>(null);
   const [rate, setRate] = useState(150);
   const [error, setError] = useState<string | null>(null);
@@ -91,9 +92,12 @@ export function AddToPortfolioForm({
       currency: cur,
       valueJpy: Math.round(cur === "JPY" ? sharesNum * avgCostNum : sharesNum * avgCostNum * rate),
       plJpy: null,
+      buyReason: buyReason ?? undefined,
+      memo: memo.trim() || undefined,
     });
     setSuccess(true);
     setShares("");
+    setMemo("");
     window.setTimeout(() => {
       setSuccess(false);
       setOpen(false);
@@ -165,6 +169,16 @@ export function AddToPortfolioForm({
               <input type="number" value={avgCost} onChange={(e) => setAvgCost(e.target.value)} className={inputBase} />
             </label>
           </div>
+          <label className="mt-2 flex flex-col gap-1 text-[11px] text-[var(--text-secondary)]">
+            メモ(任意)
+            <input
+              type="text"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              placeholder="なぜ買うか、など"
+              className={inputBase}
+            />
+          </label>
           {(() => {
             const cur = currency ?? (symbol.endsWith(".T") ? "JPY" : "USD");
             const sharesNum = Number(shares);

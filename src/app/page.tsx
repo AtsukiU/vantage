@@ -11,6 +11,7 @@ import { DashboardTab } from "@/components/dashboard/DashboardTab";
 import { StockTab, type StockSelection } from "@/components/stock/StockTab";
 import { PortfolioTab } from "@/components/portfolio/PortfolioTab";
 import { PortfolioHistoryTab } from "@/components/portfolio/PortfolioHistoryTab";
+import { TradeJournalTab } from "@/components/portfolio/TradeJournalTab";
 import { CompareTab } from "@/components/compare/CompareTab";
 import { DailyPicksTab } from "@/components/dailypicks/DailyPicksTab";
 import { PersonasTab } from "@/components/personas/PersonasTab";
@@ -18,7 +19,7 @@ import { WatchlistTab } from "@/components/watchlist/WatchlistTab";
 import { SettingsTab } from "@/components/settings/SettingsTab";
 import type { Market } from "@/lib/feeds";
 import { StockSearchBar } from "@/components/stock/StockSearchBar";
-import { LayoutGrid, Newspaper, Star, Scale, Wallet, Users, Eye, Settings, Menu, X, type LucideIcon } from "lucide-react";
+import { LayoutGrid, Newspaper, Star, Scale, Wallet, Users, Eye, Settings, Menu, X, NotebookPen, type LucideIcon } from "lucide-react";
 
 type TabKey =
   | "dashboard"
@@ -26,6 +27,7 @@ type TabKey =
   | "stock"
   | "portfolio"
   | "portfolio-history"
+  | "journal"
   | "compare"
   | "dailypicks"
   | "personas"
@@ -35,6 +37,7 @@ type TabKey =
 const TABS: { key: TabKey; label: string; icon: LucideIcon }[] = [
   { key: "dashboard", label: "ダッシュボード", icon: LayoutGrid },
   { key: "portfolio", label: "ポートフォリオ", icon: Wallet },
+  { key: "journal", label: "取引メモ", icon: NotebookPen },
   { key: "news", label: "ニュース", icon: Newspaper },
   { key: "dailypicks", label: "本日の注目銘柄", icon: Star },
   { key: "personas", label: "運用アドバイザー", icon: Users },
@@ -351,6 +354,7 @@ function HomeContent() {
           onOpenHistoryDetail={() => setActive("portfolio-history")}
         />
         <PortfolioHistoryTab hidden={active !== "portfolio-history"} onBack={() => setActive("portfolio")} />
+        <TradeJournalTab hidden={active !== "journal"} />
         <SettingsTab hidden={active !== "settings"} />
         </main>
       </div>

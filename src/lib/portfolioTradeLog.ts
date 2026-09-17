@@ -18,6 +18,8 @@ export interface PortfolioTradeEvent {
   currency: string;
   valueJpy: number; // 約定代金(円換算、手数料抜き)
   plJpy: number | null; // 売却時のみ: 実現損益(円換算、手数料込み)。買いはnull
+  buyReason?: string; // 運用アドバイザーの推奨から買った場合の根拠(投資家名など)。手動売買はundefined
+  memo?: string; // ユーザーが自由に書けるメモ(なぜ買った/売ったか等)。取引後の編集も可
 }
 
 const KEY = "stockapp.portfolioTrades.v1";
@@ -35,6 +37,14 @@ export async function recordTrade(event: Omit<PortfolioTradeEvent, "id">): Promi
   const next = [...list, entry].slice(-MAX_ENTRIES);
   await saveSynced(KEY, "portfolio-trades", next);
   return entry;
+}
+
+// 「取引メモ」ページで、記録済みの売買イベントに後からメモを書く/書き直すための更新関数。
+export async function updateTradeMemo(id: string, memo: string): Promise<PortfolioTradeEvent[]> {
+  const list = await loadTradeLog();
+  const next = list.map((t) => (t.id === id ? { ...t, memo: memo || undefined } : t));
+  await saveSynced(KEY, "portfolio-trades", next);
+  return next;
 }
 
 // このログを追加する前から保有していた銘柄には買いイベントが記録されていないため、
