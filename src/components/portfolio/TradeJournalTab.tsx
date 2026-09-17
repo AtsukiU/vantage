@@ -42,7 +42,7 @@ function MemoEditor({ trade, onSaved }: { trade: PortfolioTradeEvent; onSaved: (
           setValue(trade.memo ?? "");
           setEditing(true);
         }}
-        className="mt-1.5 block w-full rounded-lg bg-[var(--fill-subtle)] px-2.5 py-1.5 text-left text-[11px] text-[var(--text-secondary)] hover:bg-[var(--fill-pill)]"
+        className="mt-1 block w-full rounded-lg bg-[var(--fill-subtle)] px-2.5 py-1 text-left text-[11px] text-[var(--text-secondary)] hover:bg-[var(--fill-pill)]"
       >
         {trade.memo ? trade.memo : <span className="text-[var(--text-muted)]">+ メモを書く</span>}
       </button>
@@ -50,7 +50,7 @@ function MemoEditor({ trade, onSaved }: { trade: PortfolioTradeEvent; onSaved: (
   }
 
   return (
-    <div className="mt-1.5 flex items-center gap-1.5">
+    <div className="mt-1 flex items-center gap-1.5">
       <input
         type="text"
         value={value}
@@ -60,10 +60,10 @@ function MemoEditor({ trade, onSaved }: { trade: PortfolioTradeEvent; onSaved: (
           if (e.key === "Escape") setEditing(false);
         }}
         autoFocus
-        className="min-w-0 flex-1 rounded-lg border border-[var(--border-subtle)] px-2.5 py-1.5 text-[11px]"
+        className="min-w-0 flex-1 rounded-lg border border-[var(--border-subtle)] px-2.5 py-1 text-[11px]"
         placeholder="なぜ買った/売ったか、など"
       />
-      <button onClick={save} disabled={saving} className="shrink-0 rounded-full bg-[var(--accent)] px-2.5 py-1.5 text-[11px] font-semibold text-white">
+      <button onClick={save} disabled={saving} className="shrink-0 rounded-full bg-[var(--accent)] px-2.5 py-1 text-[11px] font-semibold text-white">
         保存
       </button>
       <button onClick={() => setEditing(false)} className="shrink-0 text-[11px] text-[var(--text-muted)] hover:text-[var(--foreground)]">
@@ -105,7 +105,7 @@ export function TradeJournalTab({ hidden }: { hidden: boolean }) {
   return (
     <section hidden={hidden} className="h-full">
       <GlassPageShell>
-        <div className={`${GLASS_CARD} mb-3 sm:mb-4`}>
+        <div className={`${GLASS_CARD} mb-2 sm:mb-3`}>
           <div className="flex items-center gap-2">
             <NotebookPen size={16} strokeWidth={2.25} className="text-[var(--accent)]" />
             <h2 className="text-[12.5px] font-extrabold text-[var(--foreground)]">取引メモ</h2>
@@ -156,9 +156,9 @@ export function TradeJournalTab({ hidden }: { hidden: boolean }) {
             {trades.length === 0 ? "まだ取引履歴がありません。銘柄を購入/売却すると、ここに記録されます。" : "条件に一致する取引がありません。"}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {filtered.map((t) => (
-              <div key={t.id} className={GLASS_CARD}>
+              <div key={t.id} className={`${GLASS_CARD} p-2.5 sm:p-3`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -182,27 +182,27 @@ export function TradeJournalTab({ hidden }: { hidden: boolean }) {
                   )}
                 </div>
 
-                <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] sm:grid-cols-4">
-                  <div className="flex justify-between sm:block">
-                    <span className={GLASS_TEXT2}>株数</span>
-                    <span className="font-semibold tabular-nums text-[var(--foreground)] sm:ml-1">{t.shares.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between sm:block">
-                    <span className={GLASS_TEXT2}>単価</span>
-                    <span className="font-semibold tabular-nums text-[var(--foreground)] sm:ml-1">{fmtPrice(t.price, t.currency)}</span>
-                  </div>
-                  <div className="flex justify-between sm:block">
-                    <span className={GLASS_TEXT2}>約定代金</span>
-                    <span className="font-semibold tabular-nums text-[var(--foreground)] sm:ml-1">{fmtJpy(t.valueJpy)}</span>
-                  </div>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px]">
+                  <span>
+                    <span className={GLASS_TEXT2}>株数 </span>
+                    <span className="font-semibold tabular-nums text-[var(--foreground)]">{t.shares.toLocaleString()}</span>
+                  </span>
+                  <span>
+                    <span className={GLASS_TEXT2}>単価 </span>
+                    <span className="font-semibold tabular-nums text-[var(--foreground)]">{fmtPrice(t.price, t.currency)}</span>
+                  </span>
+                  <span>
+                    <span className={GLASS_TEXT2}>約定代金 </span>
+                    <span className="font-semibold tabular-nums text-[var(--foreground)]">{fmtJpy(t.valueJpy)}</span>
+                  </span>
                   {t.plJpy != null && (
-                    <div className="flex justify-between sm:block">
-                      <span className={GLASS_TEXT2}>実現損益</span>
-                      <span className="font-semibold tabular-nums sm:ml-1" style={{ color: t.plJpy >= 0 ? "var(--status-good)" : "var(--price-up)" }}>
+                    <span>
+                      <span className={GLASS_TEXT2}>実現損益 </span>
+                      <span className="font-semibold tabular-nums" style={{ color: t.plJpy >= 0 ? "var(--status-good)" : "var(--price-up)" }}>
                         {t.plJpy >= 0 ? "+" : ""}
                         {fmtJpy(t.plJpy)}
                       </span>
-                    </div>
+                    </span>
                   )}
                 </div>
 
