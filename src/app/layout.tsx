@@ -3,6 +3,7 @@ import { Geist_Mono, M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
 import { ThemeInit } from "@/components/settings/ThemeInit";
 import { ModeInit } from "@/components/settings/ModeInit";
+import { ServiceWorkerInit } from "@/components/settings/ServiceWorkerInit";
 
 // 参考にしたダッシュボードUIの「丸みのある柔らかい」書体の雰囲気に寄せるため、
 // 日本語グリフも含む丸ゴシック系フォントに変更(以前のGeist Sansは角が立った事務的な印象だった)。
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="h-dvh flex flex-col overflow-hidden bg-[var(--background)]">
         <ThemeInit />
         <ModeInit />
+        <ServiceWorkerInit />
         {children}
       </body>
     </html>

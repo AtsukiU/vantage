@@ -80,6 +80,45 @@ export function DailyScanLoadingOverlay({ onScanComplete }: { onScanComplete?: (
     };
   }, [anyRunning, bothDone, onScanComplete]);
 
+  // サーバー再起動などでスキャン処理そのものが死んでも、ディスク/Redis上の"running"状態だけが
+  // 残ってしまうと、進捗が二度と動かないまま固まって見える(DailyScanBanner.tsxと同じロジック)。
+  // ポーリングのたび進捗件数が変わっていない回数を数え、一定回数動きが無ければ「固まっている」と
+  // みなしてリセット導線を出す。
+  const STUCK_AFTER_POLLS = 3;
+  const stuckPollsRef = useRef(0);
+  const lastDoneRef = useRef<number | null>(null);
+  const [isStuck, setIsStuck] = useState(false);
+  const [restarting, setRestarting] = useState(false);
+  const totalDoneForStuckCheck = status
+    ? MARKETS.reduce((acc, m) => acc + (status[m]?.progress.done ?? 0), 0)
+    : 0;
+  useEffect(() => {
+    if (!anyRunning) {
+      stuckPollsRef.current = 0;
+      lastDoneRef.current = null;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 実行中でなくなったらリセット表示も解除
+      setIsStuck(false);
+      return;
+    }
+    if (lastDoneRef.current === totalDoneForStuckCheck) {
+      stuckPollsRef.current += 1;
+    } else {
+      stuckPollsRef.current = 0;
+    }
+    lastDoneRef.current = totalDoneForStuckCheck;
+    setIsStuck(stuckPollsRef.current >= STUCK_AFTER_POLLS);
+  }, [anyRunning, totalDoneForStuckCheck]);
+
+  async function handleForceRestart() {
+    setRestarting(true);
+    try {
+      await Promise.all(MARKETS.map((m) => fetch(`/api/daily-screen/start?market=${m}&force=1`, { method: "POST" })));
+      await fetchStatus();
+    } finally {
+      setRestarting(false);
+    }
+  }
+
   useEffect(() => {
     if (!anyRunning) return;
     const id = window.setInterval(() => setTipIndex((i) => (i + 1) % TIPS.length), TIP_MS);
@@ -148,7 +187,7 @@ export function DailyScanLoadingOverlay({ onScanComplete }: { onScanComplete?: (
               </div>
               <div className="mt-1 text-right text-[11px] font-semibold text-white/50">{pct}%</div>
 
-              <div className="mt-5 flex min-h-[56px] items-center justify-center rounded-[10px] bg-white/5 px-3 py-2.5">
+              <div className="mt-5 flex h-[84px] items-center justify-center overflow-hidden rounded-[10px] bg-white/5 px-3 py-2.5">
                 <AnimatePresence mode="wait">
                   <motion.p
                     key={tipIndex}
@@ -156,13 +195,28 @@ export function DailyScanLoadingOverlay({ onScanComplete }: { onScanComplete?: (
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.3 }}
-                    className="text-[11px] leading-relaxed text-white/70"
+                    className="line-clamp-3 text-[11px] leading-relaxed text-white/70"
                   >
                     <span className="font-bold text-[var(--accent)]">ヒント: </span>
                     {TIPS[tipIndex]}
                   </motion.p>
                 </AnimatePresence>
               </div>
+
+              {isStuck && (
+                <div className="mt-3 rounded-[10px] border border-white/10 bg-white/5 px-3 py-2.5 text-left">
+                  <p className="text-[11px] text-white/60">
+                    進捗が止まっているようです(サーバー再起動などが原因の可能性があります)。
+                  </p>
+                  <button
+                    onClick={handleForceRestart}
+                    disabled={restarting}
+                    className="mt-1.5 rounded-full bg-[var(--accent)] px-3 py-1 text-[11px] font-semibold text-white disabled:opacity-60"
+                  >
+                    {restarting ? "再開しています…" : "リセットして再開"}
+                  </button>
+                </div>
+              )}
 
               <button
                 onClick={() => setDismissed(true)}
